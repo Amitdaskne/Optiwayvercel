@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pending Orders & Lab Processing - OPTIWAY</title>
+    <link rel="stylesheet" href="/src/index.css" />
+  </head>
+  <body class="bg-slate-50 min-h-screen flex flex-col antialiased">
+    <div class="flex flex-1 min-h-screen">
+      <!-- Sidebar -->
+      <div id="app-sidebar"></div>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Header -->
+        <div id="app-header"></div>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6 pb-24 lg:pb-8">
+          <!-- Top Control Header with Section Switch -->
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="p-1.5 bg-amber-50 text-amber-600 rounded-lg border border-amber-200">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                </span>
+                <h2 class="text-base sm:text-lg font-bold text-slate-900">Pending Orders & Lab Processing</h2>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Track lens manufacturing, lab fitting, and customer pickup fulfillment</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <a href="sales-history.html" class="inline-flex items-center gap-2 px-3.5 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors border border-slate-200">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+                <span>Sales History & Bills &rarr;</span>
+              </a>
+              <a href="sales.html" class="inline-flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-2xs transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+                <span>+ New Sale</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Pending Orders Metric Badges -->
+          <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+            <!-- Active Pending -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div>
+                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Active Pending</p>
+                <h3 id="stat-pending-count" class="text-xl sm:text-2xl font-extrabold text-amber-600 mt-0.5">0</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Awaiting completion</p>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              </div>
+            </div>
+
+            <!-- In Lab Processing -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div>
+                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">In Lab / Fitting</p>
+                <h3 id="stat-in-lab-count" class="text-xl sm:text-2xl font-extrabold text-blue-600 mt-0.5">0</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Under preparation</p>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="6" cy="15" r="4"/><circle cx="18" cy="15" r="4"/><path d="M14 15a2 2 0 0 0-4 0"/><path d="M2.5 13 5 7c.7-1.3 1.4-2 3-2"/><path d="M21.5 13 19 7c-.7-1.3-1.4-2-3-2"/></svg>
+              </div>
+            </div>
+
+            <!-- Ready for Pickup -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div>
+                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Ready for Pickup</p>
+                <h3 id="stat-ready-count" class="text-xl sm:text-2xl font-extrabold text-indigo-600 mt-0.5">0</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Notify patient</p>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m16 16 2 2 4-4"/><path d="M21 10V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l2-1.14"/></svg>
+              </div>
+            </div>
+
+            <!-- Pending Balance Receivables -->
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs flex items-center justify-between">
+              <div>
+                <p class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Pending Receivables</p>
+                <h3 id="stat-pending-balance" class="text-xl sm:text-2xl font-extrabold text-emerald-600 mt-0.5">RS 0.00</h3>
+                <p class="text-[11px] text-slate-400 mt-0.5">Balance to collect</p>
+              </div>
+              <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" x2="12" y1="2" y2="22"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+              </div>
+            </div>
+          </div>
+
+          <!-- Filter Pills & Search Section -->
+          <div class="bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs space-y-4">
+            <!-- Fast Status Filter Tabs -->
+            <div class="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-none">
+              <button id="tab-status-active" class="px-3.5 py-1.5 text-xs font-bold rounded-xl transition-colors bg-blue-600 text-white shrink-0">
+                Pending & Active
+              </button>
+              <button id="tab-status-in-lab" class="px-3.5 py-1.5 text-xs font-bold rounded-xl transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700 shrink-0">
+                In Lab (Fitting)
+              </button>
+              <button id="tab-status-ready" class="px-3.5 py-1.5 text-xs font-bold rounded-xl transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700 shrink-0">
+                Ready for Pickup
+              </button>
+              <button id="tab-status-balance" class="px-3.5 py-1.5 text-xs font-bold rounded-xl transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700 shrink-0">
+                With Pending Balance
+              </button>
+              <button id="tab-status-completed" class="px-3.5 py-1.5 text-xs font-bold rounded-xl transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700 shrink-0">
+                Completed
+              </button>
+              <button id="tab-status-all" class="px-3.5 py-1.5 text-xs font-bold rounded-xl transition-colors bg-slate-100 hover:bg-slate-200 text-slate-700 shrink-0">
+                All Orders
+              </button>
+            </div>
+
+            <!-- Detailed Search & Date Filter -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2 border-t border-slate-100">
+              <div class="lg:col-span-2">
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Search Orders</label>
+                <div class="relative">
+                  <span class="absolute left-3 top-2.5 text-slate-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                  </span>
+                  <input type="text" id="filter-search" placeholder="Search by Order #, Patient Name, Mobile..." class="w-full pl-9 pr-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-blue-500 bg-white" />
+                </div>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Payment Status</label>
+                <select id="filter-payment" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white outline-none focus:border-blue-500 font-medium">
+                  <option value="All">All Payment Types</option>
+                  <option value="Advance-paid">Advance-Paid (Balance Due)</option>
+                  <option value="Fully-paid">Fully Paid</option>
+                  <option value="Pending">Unpaid / Full Due</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-[11px] font-bold text-slate-600 mb-1">Order Date</label>
+                <input type="date" id="filter-date" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl outline-none focus:border-blue-500 bg-white font-medium" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending Orders Count & Quick Action Header -->
+          <div class="flex items-center justify-between">
+            <span id="orders-count-indicator" class="text-xs font-bold text-slate-600">Showing pending orders...</span>
+            <button id="btn-reset-filters" class="text-xs font-bold text-blue-600 hover:text-blue-800 hover:underline">
+              Clear Filters
+            </button>
+          </div>
+
+          <!-- Orders Desktop Table View (Hidden on mobile) -->
+          <div class="hidden md:block bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] border-b border-slate-200">
+                    <th class="p-3.5">Order ID</th>
+                    <th class="p-3.5">Customer / Patient</th>
+                    <th class="p-3.5">Order Date</th>
+                    <th class="p-3.5">Products / Lab Items</th>
+                    <th class="p-3.5 text-right">Grand Total</th>
+                    <th class="p-3.5 text-right">Advance Paid</th>
+                    <th class="p-3.5 text-right">Balance Due</th>
+                    <th class="p-3.5 text-center">Fulfillment Status</th>
+                    <th class="p-3.5 text-center">Payment</th>
+                    <th class="p-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-orders-body" class="divide-y divide-slate-100 text-slate-700">
+                  <tr>
+                    <td colspan="10" class="p-8 text-center text-slate-400">Loading pending orders...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Orders Mobile Card View (Visible only on mobile screens < md) -->
+          <div id="orders-mobile-container" class="md:hidden space-y-3">
+            <div class="p-8 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">Loading pending orders...</div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Order Detail & Management Modal -->
+    <div id="modal-order-detail" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-xs">
+      <div class="bg-white rounded-2xl max-w-2xl w-full p-5 sm:p-6 space-y-5 border border-slate-200 shadow-2xl max-h-[90vh] overflow-y-auto">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <div>
+            <h3 id="modal-ord-title" class="font-extrabold text-slate-900 text-base">Order Details</h3>
+            <p id="modal-ord-sub" class="text-xs text-slate-500"></p>
+          </div>
+          <button id="btn-close-ord-modal" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+
+        <div id="modal-ord-body" class="space-y-4 text-xs">
+          <!-- Dynamically Populated -->
+        </div>
+
+        <!-- Status Advancement & Action Buttons -->
+        <div class="border-t border-slate-100 pt-4 space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <label for="modal-select-status" class="font-bold text-slate-700 text-xs">Fulfillment Status:</label>
+              <select id="modal-select-status" class="px-3 py-1.5 text-xs border border-slate-300 rounded-xl outline-none bg-white font-bold text-slate-800">
+                <option value="Pending">Pending</option>
+                <option value="In Progress">In Progress (Lab / Fitting)</option>
+                <option value="Ready for Pickup">Ready for Pickup</option>
+                <option value="Completed">Completed & Delivered</option>
+                <option value="Cancelled">Cancelled</option>
+              </select>
+            </div>
+
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="btn-modal-download-receipt-pdf" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold text-xs rounded-xl transition-colors inline-flex items-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+                <span>Download Advance Receipt PDF</span>
+              </button>
+              <button id="btn-print-job-card" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-colors border border-slate-200 inline-flex items-center gap-1.5 cursor-pointer active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect width="12" height="8" x="6" y="14" rx="1"/></svg>
+                <span>Print Lab Slip</span>
+              </button>
+              <button id="btn-modal-confirm-sale" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-2xs transition-all inline-flex items-center gap-1.5 cursor-pointer active:scale-95">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>Confirm Sale</span>
+              </button>
+              <button id="btn-save-order-status" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-2xs transition-all cursor-pointer active:scale-95">
+                Save Status
+              </button>
+            </div>
+          </div>
+
+          <!-- Collect Remaining Balance Form (Shown when balance > 0) -->
+          <div id="box-collect-payment" class="p-4 bg-amber-50/90 rounded-2xl border-2 border-amber-300 space-y-3 hidden">
+            <div class="flex items-center justify-between border-b border-amber-200 pb-2">
+              <div>
+                <span class="text-xs font-extrabold text-amber-900 block">Collect Remaining / Partial Balance</span>
+                <span class="text-[11px] text-amber-700">Save to pending or finalize as completed sale</span>
+              </div>
+              <span id="label-balance-due" class="text-xs font-black text-amber-900 bg-amber-100 px-2.5 py-1 rounded-lg border border-amber-300">Due: RS 0.00</span>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Amount to Collect (RS)</label>
+                <input type="number" id="modal-collect-amount" min="0.01" step="0.01" placeholder="0.00" class="w-full px-3 py-1.5 text-xs font-bold border border-slate-300 rounded-xl bg-white outline-none focus:border-amber-500" />
+              </div>
+              <div>
+                <label class="block text-[11px] font-bold text-slate-700 mb-1">Payment Method</label>
+                <select id="modal-collect-method" class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-xl bg-white font-semibold text-slate-800 outline-none">
+                  <option value="Cash">Cash</option>
+                  <option value="UPI">UPI / QR Code</option>
+                  <option value="Card">Card</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex flex-col sm:flex-row gap-2 pt-1">
+              <button id="btn-collect-save-pending" class="flex-1 px-3 py-2 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs rounded-xl transition-colors shadow-2xs text-center">
+                ⏳ Save to Pending (Keep Active)
+              </button>
+              <button id="btn-collect-save-sale" class="flex-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl transition-colors shadow-2xs text-center">
+                💰 Settle Full & Save as Sale
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Confirm Sale & Settlement Modal -->
+    <div id="modal-quick-confirm-sale" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-xs">
+      <div class="bg-white rounded-2xl max-w-md w-full p-5 sm:p-6 space-y-4 border border-slate-200 shadow-2xl">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            <div>
+              <h3 class="font-extrabold text-slate-900 text-sm">Confirm Sale & Settle Order</h3>
+              <p id="quick-confirm-order-ref" class="text-[11px] text-slate-500 font-mono">OPT-ORD-0000</p>
+            </div>
+          </div>
+          <button id="btn-close-quick-confirm" class="p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <!-- Order Summary Pill -->
+          <div class="bg-slate-50 p-3 rounded-xl border border-slate-200 space-y-2">
+            <div class="flex justify-between">
+              <span class="text-slate-500 font-medium">Customer:</span>
+              <span id="quick-confirm-cust" class="font-bold text-slate-900">—</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500 font-medium">Grand Total:</span>
+              <span id="quick-confirm-total" class="font-bold text-slate-900">RS 0.00</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-slate-500 font-medium">Advance Paid:</span>
+              <span id="quick-confirm-advance" class="font-semibold text-emerald-700">RS 0.00</span>
+            </div>
+            <div class="flex justify-between border-t border-slate-200 pt-1.5">
+              <span class="font-bold text-slate-800">Remaining Balance Due:</span>
+              <span id="quick-confirm-balance" class="font-extrabold text-amber-700 text-sm">RS 0.00</span>
+            </div>
+          </div>
+
+          <!-- Payment Input Section (if balance > 0) -->
+          <div id="quick-confirm-payment-section" class="space-y-2">
+            <label class="block font-bold text-slate-700 text-[11px]">Final Balance Payment Method</label>
+            <select id="quick-confirm-method" class="w-full px-3 py-2 border border-slate-300 rounded-xl bg-white font-semibold text-slate-800 outline-none focus:border-emerald-500">
+              <option value="Cash">Cash Payment</option>
+              <option value="UPI">UPI / QR Code Scan</option>
+              <option value="Card">Credit / Debit Card</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+            </select>
+            <p class="text-[10.5px] text-slate-500">Full balance will be logged as received, finalizing the sale and marking fulfillment completed.</p>
+          </div>
+
+          <div id="quick-confirm-fully-paid-msg" class="hidden p-3 bg-emerald-50 text-emerald-800 rounded-xl border border-emerald-200 text-center font-bold text-xs">
+            ✓ Order is already fully paid. Confirming will mark order fulfilled & complete.
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2 pt-2 border-t border-slate-100">
+          <button id="btn-cancel-quick-confirm" class="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors">
+            Cancel
+          </button>
+          <button id="btn-submit-quick-confirm" class="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center justify-center gap-1.5">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            <span id="btn-submit-quick-confirm-text">Confirm Sale</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Invoice PDF Download Popup Modal after Pending Order Confirmation -->
+    <div id="modal-invoice-download-confirmation" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 hidden backdrop-blur-xs">
+      <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-7 space-y-5 border border-slate-200 shadow-2xl">
+        <!-- Top Status Banner -->
+        <div class="text-center space-y-2">
+          <div class="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto shadow-inner ring-8 ring-emerald-50">
+            <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+          </div>
+          <h3 class="font-black text-slate-900 text-lg sm:text-xl">Order Confirmed & Settled!</h3>
+          <p class="text-xs text-slate-500 max-w-xs mx-auto">The transaction is finalized and the official invoice is ready for PDF download.</p>
+        </div>
+
+        <!-- Invoice Snapshot Summary Card -->
+        <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-3">
+          <div class="flex items-center justify-between pb-2.5 border-b border-slate-200">
+            <div>
+              <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Invoice Number</span>
+              <span id="inv-confirm-number" class="font-extrabold text-blue-600 font-mono text-sm">OPT-INV-0000</span>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Order Reference</span>
+              <span id="inv-confirm-order-ref" class="font-bold text-slate-700 font-mono text-xs">OPT-ORD-0000</span>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3 text-xs">
+            <div>
+              <span class="text-slate-500 text-[11px] block">Customer</span>
+              <span id="inv-confirm-cust-name" class="font-bold text-slate-900 block truncate">Customer Name</span>
+              <span id="inv-confirm-cust-mobile" class="text-[11px] text-slate-500 font-mono block">Mobile</span>
+            </div>
+            <div class="text-right">
+              <span class="text-slate-500 text-[11px] block">Total Settled</span>
+              <span id="inv-confirm-amount" class="font-extrabold text-emerald-700 text-sm block">RS 0.00</span>
+              <span id="inv-confirm-paymode-badge" class="inline-block mt-0.5 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                Paid via <span id="inv-confirm-paymode">Cash</span>
+              </span>
+            </div>
+          </div>
+
+          <!-- Items Summary Preview -->
+          <div class="pt-2 border-t border-slate-200">
+            <span class="text-[10px] uppercase font-bold text-slate-400 block tracking-wider mb-1.5">Purchased Items</span>
+            <div id="inv-confirm-items-list" class="max-h-28 overflow-y-auto space-y-1 pr-1">
+              <!-- Item rows populated dynamically -->
+            </div>
+          </div>
+
+          <div id="inv-confirm-rx-badge" class="hidden flex items-center gap-1.5 p-2 bg-blue-50 text-blue-800 rounded-xl border border-blue-200 text-[11px] font-bold">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+            <span>Attached optical prescription specifications included in PDF.</span>
+          </div>
+        </div>
+
+        <!-- Download & Print Action Buttons -->
+        <div class="space-y-2.5">
+          <button id="btn-inv-confirm-download-pdf" class="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-extrabold text-sm rounded-2xl shadow-lg shadow-emerald-600/20 transition-all flex items-center justify-center gap-2 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
+            <span id="btn-inv-confirm-download-text">Download Invoice PDF</span>
+          </button>
+
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-inv-confirm-print" class="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-colors border border-slate-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect width="12" height="8" x="6" y="14" rx="1"/></svg>
+              <span>Print Invoice</span>
+            </button>
+
+            <a id="btn-inv-confirm-view-page" href="invoice.html" class="py-2.5 px-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold text-xs rounded-xl transition-colors border border-slate-200 flex items-center justify-center gap-1.5 cursor-pointer active:scale-95">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+              <span>Full Terminal &rarr;</span>
+            </a>
+          </div>
+
+          <button id="btn-inv-confirm-close" class="w-full py-2 text-slate-400 hover:text-slate-600 font-bold text-xs transition-colors cursor-pointer text-center">
+            Done / Close Window
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <script type="module" src="/src/pages/orders.ts"></script>
+  </body>
+</html>

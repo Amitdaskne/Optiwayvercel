@@ -1,0 +1,6 @@
+{
+  "name": "OPTIWAY",
+  "description": "OPTIWAY Optical Store Management System with POS, Barcodes, Inventory, and AI Purchase Bill Scanner",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

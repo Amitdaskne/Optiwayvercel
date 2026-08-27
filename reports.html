@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analytics & Reports - OPTIWAY</title>
+    <link rel="stylesheet" href="/src/index.css" />
+  </head>
+  <body class="bg-slate-50 min-h-screen flex flex-col antialiased">
+    <div class="flex flex-1 min-h-screen">
+      <!-- Sidebar -->
+      <div id="app-sidebar"></div>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Header -->
+        <div id="app-header"></div>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Financial Reports & Business Analytics</h2>
+              <p class="text-xs text-slate-500">Comprehensive overview of store revenues, outstanding receivables, and expenses</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="btn-download-today-pdf" class="px-3.5 py-2 bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>Download Today Report (PDF)</span>
+              </button>
+              <button id="btn-download-today-csv" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>Download Today Sales (CSV)</span>
+              </button>
+              <button id="btn-print-today-report" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                <span>Print Today Report</span>
+              </button>
+              <button id="btn-print-report" class="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                <span>Print Full Summary</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Printable Area Wrapper -->
+          <div id="report-printable-area" class="printable-area space-y-6">
+            
+            <!-- Today's Live Detailed Financial Section -->
+            <div class="bg-gradient-to-r from-slate-900 to-slate-800 rounded-xl p-5 text-white shadow-sm space-y-4">
+              <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-700 pb-3">
+                <div>
+                  <h3 class="text-sm font-bold tracking-wide uppercase text-blue-400">Today's Live Statement Details</h3>
+                  <p class="text-xs text-slate-300">Sales, discounts, expenses, cash in hand, UPI, and card breakdown</p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <button id="btn-today-pdf-inner" class="px-3 py-1.5 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    <span>Download Today PDF</span>
+                  </button>
+                </div>
+              </div>
+
+              <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3">
+                <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Gross Sales</p>
+                  <p id="today-gross-sales" class="text-sm font-black text-blue-300 mt-1">RS 0.00</p>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Discounts</p>
+                  <p id="today-discounts" class="text-sm font-black text-rose-300 mt-1">RS 0.00</p>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Net Sales</p>
+                  <p id="today-net-sales" class="text-sm font-black text-sky-300 mt-1">RS 0.00</p>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Expenses</p>
+                  <p id="today-expenses" class="text-sm font-black text-red-400 mt-1">RS 0.00</p>
+                </div>
+
+                <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Cash In Hand</p>
+                  <p id="today-cash-in-hand" class="text-sm font-black text-emerald-400 mt-1">RS 0.00</p>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">UPI Net</p>
+                  <p id="today-upi-amount" class="text-sm font-black text-teal-300 mt-1">RS 0.00</p>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Card Net</p>
+                  <p id="today-card-amount" class="text-sm font-black text-purple-300 mt-1">RS 0.00</p>
+                </div>
+                <div class="bg-slate-800/80 p-3 rounded-lg border border-slate-700">
+                  <p class="text-[10px] font-bold text-slate-400 uppercase">Pending</p>
+                  <p id="today-pending-receivables" class="text-sm font-black text-amber-300 mt-1">RS 0.00</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Executive P&L Overview Cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-4 gap-4">
+              <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <p class="text-xs font-medium text-slate-500">Gross Sales Revenue</p>
+                <h3 id="rep-total-revenue" class="text-xl font-black text-slate-900 mt-1">$0.00</h3>
+              </div>
+              <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <p class="text-xs font-medium text-slate-500">Total Expenses</p>
+                <h3 id="rep-total-expenses" class="text-xl font-black text-rose-600 mt-1">$0.00</h3>
+              </div>
+              <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <p class="text-xs font-medium text-slate-500">Net Estimated Profit</p>
+                <h3 id="rep-net-profit" class="text-xl font-black text-emerald-600 mt-1">$0.00</h3>
+              </div>
+              <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <p class="text-xs font-medium text-slate-500">Uncollected Receivables</p>
+                <h3 id="rep-pending-receivables" class="text-xl font-black text-amber-600 mt-1">$0.00</h3>
+              </div>
+            </div>
+
+            <!-- Detailed Breakdowns -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <!-- Category Breakdown -->
+              <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+                <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">Sales Revenue by Category</h3>
+                <div id="rep-category-list" class="space-y-2 text-xs">
+                  <p class="text-slate-400">Loading category breakdown...</p>
+                </div>
+              </div>
+
+              <!-- Payment Method Breakdown -->
+              <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+                <h3 class="text-sm font-bold text-slate-900 border-b border-slate-100 pb-2">Collections by Payment Method</h3>
+                <div id="rep-payment-methods" class="space-y-2 text-xs">
+                  <p class="text-slate-400">Loading payment breakdown...</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Top Selling Products Table -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden p-4 space-y-3">
+              <h3 class="text-sm font-bold text-slate-900">Top Performing Products & Services</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] border-b border-slate-200">
+                      <th class="p-3">Product Name</th>
+                      <th class="p-3">Category</th>
+                      <th class="p-3">Units Sold</th>
+                      <th class="p-3 text-right">Total Revenue Generated</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbl-top-products" class="divide-y divide-slate-100 text-slate-700">
+                    <tr><td colspan="4" class="p-6 text-center text-slate-400">Loading top products...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script type="module" src="/src/pages/reports.ts"></script>
+  </body>
+</html>

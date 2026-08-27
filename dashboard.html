@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dashboard - OPTIWAY</title>
+    <link rel="stylesheet" href="/src/index.css" />
+  </head>
+  <body class="bg-slate-50 min-h-screen flex flex-col antialiased">
+    <div class="flex flex-1 min-h-screen">
+      <!-- Sidebar placeholder -->
+      <div id="app-sidebar"></div>
+
+      <!-- Main Content Area -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Header placeholder -->
+        <div id="app-header"></div>
+
+        <main class="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 pb-24 lg:pb-8 space-y-4 sm:space-y-6">
+          <!-- Quick Action Bar -->
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-xl border border-[#e5e7eb] shadow-2xs">
+            <div>
+              <h2 class="text-base font-bold text-[#111827]">Store Quick Actions</h2>
+              <p class="text-xs text-[#6b7280]">Perform common daily optical store management operations</p>
+            </div>
+            <div class="grid grid-cols-2 sm:flex sm:flex-wrap gap-2">
+              <button id="btn-dash-download-today-pdf" class="col-span-1 px-3 py-2 bg-rose-700 hover:bg-rose-800 text-white font-semibold text-xs rounded-lg transition-colors shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px]">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>Today PDF</span>
+              </button>
+              <button id="btn-dash-download-today" class="col-span-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs rounded-lg transition-colors shadow-2xs flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px]">
+                <svg class="w-3.5 h-3.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>Today CSV</span>
+              </button>
+              <a href="sales.html" class="col-span-1 px-3 py-2 bg-[#1f6feb] hover:bg-[#1a5fca] text-white font-semibold text-xs rounded-lg transition-colors shadow-2xs flex items-center justify-center gap-1.5 min-h-[38px]">
+                <span>POS Sale</span>
+              </a>
+              <a href="customers.html?action=add" class="col-span-1 px-3 py-2 bg-[#111827] hover:bg-slate-800 text-white font-semibold text-xs rounded-lg transition-colors flex items-center justify-center gap-1.5 min-h-[38px]">
+                <span>+ Customer</span>
+              </a>
+              <a href="prescriptions.html?action=add" class="col-span-1 px-3 py-2 bg-gray-50 hover:bg-gray-100 text-[#111827] font-semibold text-xs rounded-lg transition-colors border border-[#e5e7eb] flex items-center justify-center gap-1.5 min-h-[38px]">
+                <span>+ Rx</span>
+              </a>
+              <a href="products.html?action=add" class="col-span-1 px-3 py-2 bg-gray-50 hover:bg-gray-100 text-[#111827] font-semibold text-xs rounded-lg transition-colors border border-[#e5e7eb] flex items-center justify-center gap-1.5 min-h-[38px]">
+                <span>+ Product</span>
+              </a>
+              <a href="expenses.html?action=add" class="col-span-2 sm:col-span-1 px-3 py-2 bg-gray-50 hover:bg-gray-100 text-[#111827] font-semibold text-xs rounded-lg transition-colors border border-[#e5e7eb] flex items-center justify-center gap-1.5 min-h-[38px]">
+                <span>+ Expense</span>
+              </a>
+            </div>
+          </div>
+
+          <!-- Key Metrics Grid (6 Metric Cards) -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div class="bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-2xs">
+              <p class="text-[11px] font-semibold text-[#6b7280] uppercase tracking-wider">Total Sales</p>
+              <h3 id="stat-total-sales" class="text-xl font-bold text-[#111827] mt-1">RS 0.00</h3>
+              <p class="text-[11px] text-green-600 font-medium mt-1">All-time revenue</p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-2xs">
+              <div class="flex items-center justify-between">
+                <p class="text-[11px] font-semibold text-[#6b7280] uppercase tracking-wider">Today's Sales</p>
+                <button id="btn-dash-download-today-icon" title="Download Today's Sales Report" class="text-emerald-600 hover:bg-emerald-50 p-1 rounded transition-colors cursor-pointer">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                </button>
+              </div>
+              <h3 id="stat-today-sales" class="text-xl font-bold text-[#1f6feb] mt-1">RS 0.00</h3>
+              <p class="text-[11px] text-[#6b7280] font-medium mt-1">Daily gross sales</p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-2xs">
+              <p class="text-[11px] font-semibold text-[#6b7280] uppercase tracking-wider">Pending Balances</p>
+              <h3 id="stat-pending-payments" class="text-xl font-bold text-amber-600 mt-1">RS 0.00</h3>
+              <p class="text-[11px] text-amber-700 font-medium mt-1">Uncollected receivables</p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-2xs">
+              <p class="text-[11px] font-semibold text-[#6b7280] uppercase tracking-wider">Pending Orders</p>
+              <h3 id="stat-pending-orders" class="text-xl font-bold text-indigo-600 mt-1">0</h3>
+              <p class="text-[11px] text-[#6b7280] font-medium mt-1">Lab fulfillment</p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-2xs">
+              <p class="text-[11px] font-semibold text-[#6b7280] uppercase tracking-wider">Total Clients</p>
+              <h3 id="stat-total-customers" class="text-xl font-bold text-[#111827] mt-1">0</h3>
+              <p class="text-[11px] text-[#6b7280] font-medium mt-1">Registered accounts</p>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-2xs">
+              <p class="text-[11px] font-semibold text-[#6b7280] uppercase tracking-wider">Low Stock</p>
+              <h3 id="stat-low-stock" class="text-xl font-bold text-red-600 mt-1">0</h3>
+              <p class="text-[11px] text-red-600 font-medium mt-1">Action required</p>
+            </div>
+          </div>
+
+          <!-- Mid Section: Recent Sales + Outstanding Balances & Inventory Alerts -->
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Recent Sales Table (2 Cols) -->
+            <div class="lg:col-span-2 bg-white rounded-xl border border-[#e5e7eb] shadow-2xs overflow-hidden flex flex-col">
+              <div class="p-4 border-b border-[#e5e7eb] flex items-center justify-between">
+                <div>
+                  <h3 class="font-bold text-[#111827] text-sm">Recent Sales Transactions</h3>
+                  <p class="text-xs text-[#6b7280]">Latest completed and advance sales</p>
+                </div>
+                <a href="sales-history.html" class="text-xs font-semibold text-[#1f6feb] hover:underline">View Sales History &rarr;</a>
+              </div>
+              <div class="flex-1 overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-gray-50 text-[#6b7280] uppercase font-semibold text-[10px] tracking-wider border-b border-[#e5e7eb]">
+                      <th class="py-3 px-4">Sale No.</th>
+                      <th class="py-3 px-4">Customer</th>
+                      <th class="py-3 px-4">Total</th>
+                      <th class="py-3 px-4">Advance</th>
+                      <th class="py-3 px-4">Pending</th>
+                      <th class="py-3 px-4">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbl-recent-sales" class="divide-y divide-[#e5e7eb] text-[#111827]">
+                    <tr><td colspan="6" class="p-6 text-center text-[#6b7280]">Loading recent sales...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <!-- Right Sidebar: Outstanding Customer Balances + Low Stock Alerts -->
+            <div class="space-y-6">
+              <!-- Outstanding Balances -->
+              <div class="bg-white rounded-xl border border-[#e5e7eb] shadow-2xs p-4">
+                <div class="flex items-center justify-between mb-3 border-b border-[#e5e7eb] pb-2">
+                  <h3 class="font-bold text-[#111827] text-sm">Outstanding Balances</h3>
+                  <a href="customers.html" class="text-xs font-semibold text-[#1f6feb] hover:underline">Manage</a>
+                </div>
+                <div id="list-outstanding-balances" class="space-y-2.5 max-h-56 overflow-y-auto">
+                  <p class="text-xs text-[#6b7280] text-center py-2">Loading customer balances...</p>
+                </div>
+              </div>
+
+              <!-- Inventory Alerts -->
+              <div class="bg-white rounded-xl border border-[#e5e7eb] shadow-2xs p-4">
+                <div class="flex items-center justify-between mb-3 border-b border-[#e5e7eb] pb-2">
+                  <h3 class="font-bold text-[#111827] text-sm">Critical Inventory Alerts</h3>
+                  <a href="inventory.html" class="text-xs font-semibold text-[#1f6feb] hover:underline">Inventory</a>
+                </div>
+                <div id="list-inventory-alerts" class="space-y-2 max-h-56 overflow-y-auto">
+                  <p class="text-xs text-[#6b7280] text-center py-2">Loading inventory status...</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Section: Recent Orders Table -->
+          <div class="bg-white rounded-xl border border-[#e5e7eb] shadow-2xs overflow-hidden">
+            <div class="p-4 border-b border-[#e5e7eb] flex items-center justify-between">
+              <div>
+                <h3 class="font-bold text-[#111827] text-sm">Active & Pending Orders</h3>
+                <p class="text-xs text-[#6b7280]">Optical laboratory processing status</p>
+              </div>
+              <a href="orders.html" class="text-xs font-semibold text-[#1f6feb] hover:underline">View All Orders</a>
+            </div>
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-gray-50 text-[#6b7280] uppercase font-semibold text-[10px] tracking-wider border-b border-[#e5e7eb]">
+                    <th class="py-3 px-4">Order ID</th>
+                    <th class="py-3 px-4">Customer</th>
+                    <th class="py-3 px-4">Order Date</th>
+                    <th class="py-3 px-4">Status</th>
+                    <th class="py-3 px-4">Payment</th>
+                    <th class="py-3 px-4">Balance</th>
+                    <th class="py-3 px-4">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-recent-orders" class="divide-y divide-[#e5e7eb] text-[#111827]">
+                  <tr><td colspan="7" class="p-6 text-center text-[#6b7280]">Loading recent orders...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script type="module" src="/src/pages/dashboard.ts"></script>
+  </body>
+</html>

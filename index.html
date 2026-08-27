@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OPTIWAY - Optical Store Management System</title>
+    <link rel="stylesheet" href="/src/index.css" />
+    <script>
+      // Immediate synchronous redirect for index page
+      try {
+        var isDemo = localStorage.getItem("optiway_demo_mode") !== "false";
+        var hasAuth = localStorage.getItem("optiway_auth_state") === "authenticated";
+        if (isDemo || hasAuth) {
+          window.location.replace("dashboard.html");
+        } else {
+          window.location.replace("login.html");
+        }
+      } catch (e) {
+        window.location.replace("dashboard.html");
+      }
+    </script>
+  </head>
+  <body class="bg-slate-900 text-slate-100 min-h-screen flex items-center justify-center">
+    <div class="text-center p-8">
+      <div class="w-16 h-16 rounded-2xl bg-blue-600 text-white font-extrabold text-3xl flex items-center justify-center mx-auto mb-4 shadow-lg animate-pulse">
+        O
+      </div>
+      <h1 class="text-2xl font-bold tracking-tight text-white mb-2">OPTIWAY</h1>
+      <p class="text-slate-400 text-sm mb-6">Redirecting to OPTIWAY Dashboard...</p>
+      <div class="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto"></div>
+    </div>
+    <script type="module">
+      import { initAuthGuard } from "./src/lib/auth";
+      initAuthGuard({});
+      setTimeout(() => {
+        window.location.replace("dashboard.html");
+      }, 500);
+    </script>
+  </body>
+</html>

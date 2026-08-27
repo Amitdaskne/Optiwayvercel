@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Store Settings - OPTIWAY</title>
+    <link rel="stylesheet" href="/src/index.css" />
+  </head>
+  <body class="bg-slate-50 min-h-screen flex flex-col antialiased">
+    <div class="flex flex-1 min-h-screen">
+      <!-- Sidebar -->
+      <div id="app-sidebar"></div>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Header -->
+        <div id="app-header"></div>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
+          <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+            <h2 class="text-base font-bold text-slate-900">OPTIWAY Store Configuration & System Settings</h2>
+            <p class="text-xs text-slate-500">Configure optical store identity, sales tax rates, Cloudinary logo, and database maintenance</p>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Left Column: Store Profile & Branding (2 Cols) -->
+            <div class="lg:col-span-2 bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-5">
+              <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-3 uppercase tracking-wider">Store Profile & Tax Rates</h3>
+
+              <form id="form-settings" class="space-y-4 text-xs">
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Optical Store Name *</label>
+                  <input type="text" id="set-store-name" required placeholder="OPTIWAY Vision Care" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none font-bold text-slate-900" />
+                </div>
+
+                <div class="grid grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Phone Number *</label>
+                    <input type="text" id="set-phone" required placeholder="+1 800-555-0199" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Email Address *</label>
+                    <input type="email" id="set-email" required placeholder="contact@optiway.com" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Street Address</label>
+                    <input type="text" id="set-address" placeholder="742 Vision Avenue, Suite 100, New York, NY 10001" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">GSTIN / Tax Registration No. (Optional)</label>
+                    <input type="text" id="set-gst-number" placeholder="e.g. 27AAAAA0000A1Z5" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none uppercase font-mono" />
+                  </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Default Tax Rate (%)</label>
+                    <input type="number" step="0.5" min="0" max="100" id="set-tax-rate" placeholder="18" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none font-bold text-slate-900" />
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Default Tax Mode</label>
+                    <select id="set-tax-mode" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none font-medium bg-white">
+                      <option value="with_tax">With Tax (GST Active)</option>
+                      <option value="without_tax">Without Tax (0% Exempt)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label class="block font-semibold text-slate-700 mb-1">Invoice Prefix</label>
+                    <input type="text" id="set-inv-prefix" placeholder="OPT-INV-" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none font-mono" />
+                  </div>
+                </div>
+
+                <div>
+                  <label class="block font-semibold text-slate-700 mb-1">Receipt Prefix</label>
+                  <input type="text" id="set-rec-prefix" placeholder="OPT-REC-" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none font-mono" />
+                </div>
+
+                <!-- Theme Color Selector (24+ Colors & Custom Picker) -->
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-3.5">
+                  <div class="flex flex-wrap items-center justify-between gap-2">
+                    <div>
+                      <label class="block font-bold text-slate-900 text-xs uppercase tracking-wider">Store Brand & App Theme Color</label>
+                      <span class="text-[11px] text-slate-500">Choose from 24+ preset colors or pick a custom brand shade</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                      <span id="theme-selected-label" class="text-xs font-bold text-slate-800 px-2 py-0.5 rounded-full bg-white border border-slate-200 shadow-2xs font-mono">#1f6feb</span>
+                    </div>
+                  </div>
+
+                  <!-- Color Swatches Grid (24 curated theme options) -->
+                  <div id="theme-color-palette-grid" class="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-2.5 pt-1">
+                    <!-- Populated dynamically via settings.ts with 24+ options -->
+                  </div>
+
+                  <!-- Custom Color Picker Row -->
+                  <div class="pt-2 border-t border-slate-200/80 flex flex-wrap items-center justify-between gap-3">
+                    <div class="flex items-center gap-2.5">
+                      <label class="text-xs font-semibold text-slate-700">Custom Color Picker:</label>
+                      <div class="flex items-center gap-2">
+                        <input type="color" id="set-custom-theme-picker" value="#1f6feb" class="w-8 h-8 p-0.5 rounded-lg border border-slate-300 cursor-pointer bg-white" />
+                        <input type="text" id="set-theme-hex-input" placeholder="#1f6feb" maxlength="7" class="w-24 px-2.5 py-1 text-xs border border-slate-300 rounded-lg font-mono uppercase font-bold text-slate-800" />
+                      </div>
+                    </div>
+                    <button type="button" id="btn-reset-theme-default" class="text-[11px] font-semibold text-blue-600 hover:text-blue-800 hover:underline cursor-pointer">
+                      Reset to Default Blue
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Cloudinary Logo Upload -->
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <label class="block font-bold text-slate-800">Store Branding Logo</label>
+                    <span class="text-[10px] text-slate-500">Appears on A4 invoices, job slips, and receipts</span>
+                  </div>
+                  <input type="file" id="set-logo-file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
+                  <input type="text" id="set-logo-url" placeholder="Or enter direct logo URL" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white font-mono text-[11px]" />
+                  <div id="set-logo-progress" class="hidden text-[10px] text-blue-600 font-bold">Uploading logo to Cloudinary...</div>
+                </div>
+
+                <div class="pt-2 flex items-center gap-3">
+                  <button type="submit" id="btn-save-settings" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-2xs transition-all flex items-center gap-2 cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                    <span id="btn-save-text">Save Store Settings</span>
+                  </button>
+                  <span id="save-status-msg" class="text-xs font-bold text-emerald-700 hidden">✓ Settings saved & applied across system</span>
+                </div>
+              </form>
+            </div>
+
+            <!-- Right Column: Live Header Preview & Database Actions -->
+            <div class="space-y-6">
+              <!-- Live Invoice Header Preview -->
+              <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-2">
+                  <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Live Invoice Header Preview</h3>
+                  <span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold border border-blue-100">Live Sync</span>
+                </div>
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
+                  <div id="preview-logo-box" class="hidden mb-2">
+                    <img id="preview-logo-img" src="" alt="Store Logo" class="h-10 mx-auto object-contain" />
+                  </div>
+                  <h4 id="preview-store-name" class="text-sm font-black text-slate-900">OPTIWAY VISION CARE</h4>
+                  <p id="preview-store-address" class="text-[10.5px] text-slate-500 font-medium">742 Vision Avenue, Suite 100, New York, NY 10001</p>
+                  <p id="preview-store-contact" class="text-[10.5px] text-slate-600 font-semibold">Ph: +1 800-555-0199 | contact@optiway.com</p>
+                  <p id="preview-store-gst" class="text-[10px] text-blue-700 font-mono font-bold hidden">GSTIN: —</p>
+                </div>
+              </div>
+              <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
+                <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-3 uppercase tracking-wider">Database & System Actions</h3>
+
+                <div class="space-y-3">
+                  <button id="btn-reseed-data" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-lg transition-colors">
+                    Reset & Seed Demo Store Data
+                  </button>
+                  <p class="text-[11px] text-slate-500">Populates standard optical frames, prescription lenses, suppliers, and sample customer sales.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script type="module" src="/src/pages/settings.ts"></script>
+  </body>
+</html>

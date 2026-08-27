@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Purchase Bills - OPTIWAY</title>
+    <link rel="stylesheet" href="/src/index.css" />
+  </head>
+  <body class="bg-slate-50 min-h-screen flex flex-col antialiased text-slate-800">
+    <div class="flex flex-1 min-h-screen">
+      <!-- Sidebar -->
+      <div id="app-sidebar"></div>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Header -->
+        <div id="app-header"></div>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
+          <!-- Page Header & Action Bar -->
+          <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-2xs">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-1 rounded-md bg-blue-50 text-blue-700 font-bold text-[11px] uppercase tracking-wider border border-blue-200/60">
+                  Stock Procurement
+                </span>
+                <span class="text-xs text-slate-400">•</span>
+                <span class="text-xs font-semibold text-slate-600">Frame, Lens & Contact Lens Hub</span>
+              </div>
+              <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 tracking-tight mt-1">Purchase Bills & Stock Invoices</h2>
+              <p class="text-xs text-slate-500 mt-0.5">Automated AI OCR invoice scanning, optical category filtering, and barcode stock intake</p>
+            </div>
+            
+            <div class="flex flex-wrap items-center gap-2.5">
+              <button id="btn-scan-ai-bill" class="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-md shadow-blue-600/20 transition-all flex items-center gap-2 cursor-pointer active:scale-95">
+                <svg class="w-4 h-4 text-blue-200 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>AI Scan Purchase Bill</span>
+              </button>
+
+              <button id="btn-open-manual-bill" class="px-3.5 py-2.5 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl border border-slate-300 shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+                <span>+ Add Manual Bill</span>
+              </button>
+
+              <button id="btn-export-bills-csv" class="px-3 py-2.5 bg-white hover:bg-slate-50 text-slate-600 font-semibold text-xs rounded-xl border border-slate-300 shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer" title="Export to CSV">
+                <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>Export CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- KPI Summary Cards for Optical Categories -->
+          <div class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-5 gap-3.5 sm:gap-4">
+            <!-- Total Purchases -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider">Total Purchases</span>
+                <span class="p-1.5 bg-blue-50 rounded-lg text-blue-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2zM10 8.5a.5.5 0 11-1 0 .5.5 0 011 0zm5 5a.5.5 0 11-1 0 .5.5 0 011 0z"></path></svg>
+                </span>
+              </div>
+              <h3 id="stat-total-spend" class="text-lg sm:text-xl font-extrabold text-slate-900 mt-2">RS 0.00</h3>
+              <p id="stat-total-count" class="text-[11px] text-slate-500 font-medium mt-0.5">0 Bills processed</p>
+            </div>
+
+            <!-- Frame Purchases -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-blue-600 uppercase tracking-wider">Frames Procurement</span>
+                <span class="p-1.5 bg-blue-50 rounded-lg text-blue-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 10h16M4 14h16M7 6h10M5 18h14"></path></svg>
+                </span>
+              </div>
+              <h3 id="stat-frame-spend" class="text-lg sm:text-xl font-extrabold text-blue-700 mt-2">RS 0.00</h3>
+              <p id="stat-frame-units" class="text-[11px] text-slate-500 font-medium mt-0.5">0 Frame units</p>
+            </div>
+
+            <!-- Lens Purchases -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-purple-600 uppercase tracking-wider">Lenses Procurement</span>
+                <span class="p-1.5 bg-purple-50 rounded-lg text-purple-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" stroke-width="2"></circle><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3a9 9 0 00-9 9"></path></svg>
+                </span>
+              </div>
+              <h3 id="stat-lens-spend" class="text-lg sm:text-xl font-extrabold text-purple-700 mt-2">RS 0.00</h3>
+              <p id="stat-lens-units" class="text-[11px] text-slate-500 font-medium mt-0.5">0 Lens pairs</p>
+            </div>
+
+            <!-- Contact Lens Purchases -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-emerald-600 uppercase tracking-wider">Contact Lenses</span>
+                <span class="p-1.5 bg-emerald-50 rounded-lg text-emerald-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                </span>
+              </div>
+              <h3 id="stat-cl-spend" class="text-lg sm:text-xl font-extrabold text-emerald-700 mt-2">RS 0.00</h3>
+              <p id="stat-cl-units" class="text-[11px] text-slate-500 font-medium mt-0.5">0 CL packs</p>
+            </div>
+
+            <!-- Unpaid Balance -->
+            <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs col-span-2 sm:col-span-2 lg:col-span-1">
+              <div class="flex items-center justify-between">
+                <span class="text-[11px] font-bold text-amber-600 uppercase tracking-wider">Pending Payables</span>
+                <span class="p-1.5 bg-amber-50 rounded-lg text-amber-600">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </span>
+              </div>
+              <h3 id="stat-unpaid-balance" class="text-lg sm:text-xl font-extrabold text-amber-700 mt-2">RS 0.00</h3>
+              <p id="stat-unpaid-count" class="text-[11px] text-slate-500 font-medium mt-0.5">0 Unpaid / Partial</p>
+            </div>
+          </div>
+
+          <!-- Category Quick Filter Pills -->
+          <div class="flex items-center gap-2 overflow-x-auto pb-1 touch-scroll">
+            <button data-cat="all" class="btn-category-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-blue-600 text-white shadow-2xs cursor-pointer">
+              All Purchases <span id="tab-badge-all" class="ml-1.5 px-1.5 py-0.5 rounded-full bg-white/20 text-[10px]">0</span>
+            </button>
+            <button data-cat="Frame" class="btn-category-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs cursor-pointer flex items-center gap-1.5">
+              <span>Frames & Sunglasses</span>
+              <span id="tab-badge-frame" class="ml-1 px-1.5 py-0.5 rounded-full bg-blue-50 text-blue-700 text-[10px] font-extrabold">0</span>
+            </button>
+            <button data-cat="Lens" class="btn-category-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs cursor-pointer flex items-center gap-1.5">
+              <span>Optical Lenses</span>
+              <span id="tab-badge-lens" class="ml-1 px-1.5 py-0.5 rounded-full bg-purple-50 text-purple-700 text-[10px] font-extrabold">0</span>
+            </button>
+            <button data-cat="Contact Lens" class="btn-category-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs cursor-pointer flex items-center gap-1.5">
+              <span>Contact Lenses</span>
+              <span id="tab-badge-cl" class="ml-1 px-1.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-[10px] font-extrabold">0</span>
+            </button>
+            <button data-cat="Accessories" class="btn-category-tab px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 bg-white hover:bg-slate-100 text-slate-700 border border-slate-200 shadow-2xs cursor-pointer flex items-center gap-1.5">
+              <span>Accessories & Solutions</span>
+              <span id="tab-badge-acc" class="ml-1 px-1.5 py-0.5 rounded-full bg-amber-50 text-amber-700 text-[10px] font-extrabold">0</span>
+            </button>
+          </div>
+
+          <!-- Filter & Search Toolbar Card -->
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-2xs space-y-3.5">
+            <!-- Row 1: Search & Dropdowns -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-12 gap-3">
+              <!-- Live Search Input (Cols 1-4) -->
+              <div class="sm:col-span-2 lg:col-span-4 relative">
+                <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                </div>
+                <input type="text" id="bill-search-input" placeholder="Search Bill #, Supplier, Ledger ID, Item, Model Number, Brand..." class="w-full pl-10 pr-4 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100 transition-all text-slate-800 placeholder-slate-400" />
+              </div>
+
+              <!-- Supplier Filter (Cols 5-7) -->
+              <div class="sm:col-span-1 lg:col-span-3">
+                <select id="filter-supplier" class="w-full px-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white font-medium text-slate-700">
+                  <option value="all">All Optical Suppliers</option>
+                </select>
+              </div>
+
+              <!-- Payment Status (Cols 8-9) -->
+              <div class="sm:col-span-1 lg:col-span-2">
+                <select id="filter-payment-status" class="w-full px-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white font-medium text-slate-700">
+                  <option value="all">All Payment Statuses</option>
+                  <option value="Paid">Paid</option>
+                  <option value="Unpaid">Unpaid</option>
+                  <option value="Partial">Partial</option>
+                </select>
+              </div>
+
+              <!-- Destination Filter (Cols 10-11) -->
+              <div class="sm:col-span-1 lg:col-span-2">
+                <select id="filter-destination" class="w-full px-3 py-2.5 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-blue-500 focus:bg-white font-medium text-slate-700">
+                  <option value="all">All Intake Queues</option>
+                  <option value="live">Live Catalog Stock</option>
+                  <option value="pending">Pending Intake Queue</option>
+                </select>
+              </div>
+
+              <!-- View Mode Toggle (Col 12) -->
+              <div class="sm:col-span-1 lg:col-span-1 flex items-center justify-end">
+                <div class="inline-flex rounded-xl p-1 bg-slate-100 border border-slate-200 w-full justify-between">
+                  <button id="view-mode-bills" class="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-white text-blue-600 shadow-2xs cursor-pointer flex-1 text-center" title="Grouped Bills View">
+                    Bills
+                  </button>
+                  <button id="view-mode-items" class="px-2.5 py-1.5 rounded-lg text-xs font-semibold text-slate-600 hover:text-slate-900 cursor-pointer flex-1 text-center" title="Itemized Line Items View">
+                    Items
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Row 2: Date Filters & Sort Options -->
+            <div class="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-slate-100 text-xs">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">Date:</span>
+                <button data-period="all" class="btn-date-preset px-2.5 py-1 rounded-lg font-bold bg-slate-900 text-white cursor-pointer">All Time</button>
+                <button data-period="today" class="btn-date-preset px-2.5 py-1 rounded-lg font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">Today</button>
+                <button data-period="week" class="btn-date-preset px-2.5 py-1 rounded-lg font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">This Week</button>
+                <button data-period="month" class="btn-date-preset px-2.5 py-1 rounded-lg font-semibold bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer">This Month</button>
+                
+                <div class="flex items-center gap-1.5 ml-2">
+                  <input type="date" id="filter-date-start" class="px-2 py-1 text-xs border border-slate-200 rounded-lg outline-none text-slate-700 bg-slate-50" />
+                  <span class="text-slate-400 text-xs">to</span>
+                  <input type="date" id="filter-date-end" class="px-2 py-1 text-xs border border-slate-200 rounded-lg outline-none text-slate-700 bg-slate-50" />
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Sort By:</span>
+                <select id="filter-sort" class="px-2.5 py-1 text-xs bg-slate-50 border border-slate-200 rounded-lg outline-none text-slate-700 font-medium">
+                  <option value="date-desc">Date (Newest First)</option>
+                  <option value="date-asc">Date (Oldest First)</option>
+                  <option value="amount-desc">Total Amount (High to Low)</option>
+                  <option value="amount-asc">Total Amount (Low to High)</option>
+                  <option value="items-desc">Item Count (Most First)</option>
+                </select>
+                <button id="btn-reset-filters" class="text-blue-600 hover:underline font-bold text-xs ml-1 cursor-pointer">Reset</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Purchase Bills Container (Bills View) -->
+          <div id="container-bills-view" class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden">
+            <div class="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-slate-900 text-sm">Purchase Bill Records</h3>
+                <span id="filtered-records-count" class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-bold text-[11px]">0</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="text-[11px] text-slate-500">Showing Frame, Lens, and Contact Lens invoices</span>
+              </div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-50/90 text-slate-600 font-bold uppercase text-[11px] border-b border-slate-200">
+                    <th class="p-3.5">Bill Number</th>
+                    <th class="p-3.5">Supplier & Ledger</th>
+                    <th class="p-3.5">Bill Date</th>
+                    <th class="p-3.5">Optical Categories</th>
+                    <th class="p-3.5">Items / Qty</th>
+                    <th class="p-3.5">Grand Total</th>
+                    <th class="p-3.5">Payment</th>
+                    <th class="p-3.5">Intake</th>
+                    <th class="p-3.5 text-right">Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-bills-body" class="divide-y divide-slate-100 text-slate-700">
+                  <tr><td colspan="9" class="p-8 text-center text-slate-400">Loading purchase bill invoices...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Main Itemized Line Items Container (Items View, initially hidden) -->
+          <div id="container-items-view" class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden hidden">
+            <div class="p-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3 bg-slate-50/50">
+              <div class="flex items-center gap-2">
+                <h3 class="font-bold text-slate-900 text-sm">Itemized Optical Line Items</h3>
+                <span id="filtered-items-count" class="px-2 py-0.5 rounded-full bg-slate-200 text-slate-700 font-bold text-[11px]">0</span>
+              </div>
+              <div class="text-[11px] text-slate-500">Itemized view across all scanned and manual purchase bills</div>
+            </div>
+
+            <div class="overflow-x-auto">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-50/90 text-slate-600 font-bold uppercase text-[11px] border-b border-slate-200">
+                    <th class="p-3.5">Model Number</th>
+                    <th class="p-3.5">Product Name & Specifications</th>
+                    <th class="p-3.5">Category</th>
+                    <th class="p-3.5">Brand & Model</th>
+                    <th class="p-3.5">Quantity</th>
+                    <th class="p-3.5">Unit Cost</th>
+                    <th class="p-3.5">Selling MRP</th>
+                    <th class="p-3.5">Margin %</th>
+                    <th class="p-3.5">Bill # & Supplier</th>
+                    <th class="p-3.5 text-right">Stickers</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-items-body" class="divide-y divide-slate-100 text-slate-700">
+                  <tr><td colspan="10" class="p-8 text-center text-slate-400">Loading itemized products...</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Bill Detail & Inspection Modal -->
+    <div id="modal-bill-detail" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-5 hidden">
+      <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <!-- Header -->
+        <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/80 shrink-0">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-blue-600 text-white font-extrabold flex items-center justify-center text-lg shadow-2xs">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h3 id="modal-detail-bill-num" class="font-extrabold text-slate-900 text-base">BIL-2026-081</h3>
+                <span id="modal-detail-dest-badge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-800">Live Stock</span>
+                <span id="modal-detail-pay-badge" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-emerald-100 text-emerald-800">Paid</span>
+              </div>
+              <p id="modal-detail-supplier-meta" class="text-xs text-slate-500 mt-0.5">EssilorLuxottica (LED-ESS-01) • Scanned via AI OCR</p>
+            </div>
+          </div>
+          <button id="btn-close-bill-detail" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-sm font-bold">✕</button>
+        </div>
+
+        <!-- Body -->
+        <div class="p-4 sm:p-6 overflow-y-auto space-y-5 text-xs touch-scroll">
+          <!-- Supplier & Invoice Meta Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Supplier Name</span>
+              <span id="modal-meta-sup-name" class="font-bold text-slate-900 block mt-0.5">EssilorLuxottica</span>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Ledger ID & Tax ID</span>
+              <span id="modal-meta-sup-ledger" class="font-mono font-bold text-blue-700 block mt-0.5">LED-ESS-01</span>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Bill Date & Due Date</span>
+              <span id="modal-meta-dates" class="font-medium text-slate-800 block mt-0.5">Aug 20, 2026</span>
+            </div>
+            <div>
+              <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Payment Method</span>
+              <span id="modal-meta-payment-method" class="font-medium text-slate-800 block mt-0.5">Bank Transfer</span>
+            </div>
+          </div>
+
+          <!-- Items Table -->
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Line Items Breakdown</h4>
+              <span id="modal-detail-items-count" class="text-[11px] text-slate-500 font-medium">3 items</span>
+            </div>
+            <div class="border border-slate-200 rounded-xl overflow-hidden shadow-2xs">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 font-bold uppercase text-[10px] border-b border-slate-200">
+                    <th class="p-2.5">Category</th>
+                    <th class="p-2.5">Product Name & Specifications</th>
+                    <th class="p-2.5">Model Number</th>
+                    <th class="p-2.5 text-center">Qty</th>
+                    <th class="p-2.5 text-right">Unit Cost</th>
+                    <th class="p-2.5 text-right">Selling MRP</th>
+                    <th class="p-2.5 text-right">Line Total</th>
+                  </tr>
+                </thead>
+                <tbody id="modal-detail-items-tbody" class="divide-y divide-slate-100 text-slate-700 bg-white">
+                  <!-- Injected via JS -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Summary & Totals Box -->
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-semibold text-slate-600">Payment Status:</span>
+                <select id="modal-change-payment-status" class="px-2.5 py-1 text-xs border border-slate-300 rounded-lg outline-none bg-white font-bold text-slate-800">
+                  <option value="Paid">Paid</option>
+                  <option value="Unpaid">Unpaid</option>
+                  <option value="Partial">Partial</option>
+                </select>
+                <button id="btn-modal-update-payment" class="px-3 py-1 bg-slate-900 text-white font-bold rounded-lg text-xs hover:bg-slate-800 cursor-pointer">Update</button>
+              </div>
+              <p id="modal-detail-notes" class="text-[11px] text-slate-500 italic mt-1"></p>
+            </div>
+
+            <div class="space-y-1.5 text-right sm:min-w-[220px]">
+              <div class="flex justify-between text-slate-600 text-xs">
+                <span>Subtotal:</span>
+                <span id="modal-detail-subtotal" class="font-semibold">RS 0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-600 text-xs">
+                <span>Tax / GST:</span>
+                <span id="modal-detail-tax" class="font-semibold">RS 0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-600 text-xs">
+                <span>Discount:</span>
+                <span id="modal-detail-discount" class="font-semibold text-emerald-600">- RS 0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-900 font-extrabold text-sm pt-1.5 border-t border-slate-200">
+                <span>Grand Total:</span>
+                <span id="modal-detail-grand-total" class="text-blue-700 font-extrabold text-base">RS 0.00</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="p-4 sm:p-5 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50 shrink-0">
+          <button id="btn-modal-delete-bill" class="px-3 py-2 text-rose-600 hover:bg-rose-50 font-bold rounded-xl transition-colors text-xs border border-rose-200 cursor-pointer flex items-center gap-1.5">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+            <span>Delete Bill</span>
+          </button>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button id="btn-modal-print-stickers" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-xs transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer">
+              <svg class="w-4 h-4 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
+              <span>Print 79×10mm Barcode Stickers</span>
+            </button>
+            <button id="btn-modal-print-invoice" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs transition-colors shadow-2xs flex items-center gap-1.5 cursor-pointer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+              <span>Print Invoice Receipt</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Manual Optical Purchase Bill Modal -->
+    <div id="modal-manual-bill" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-5 hidden">
+      <div class="bg-white rounded-2xl max-w-4xl w-full max-h-[92vh] flex flex-col border border-slate-200 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+        <!-- Header -->
+        <div class="p-4 sm:p-5 border-b border-slate-200 flex items-center justify-between bg-slate-50/80 shrink-0">
+          <div>
+            <h3 class="font-extrabold text-slate-900 text-base">Create Manual Optical Purchase Bill</h3>
+            <p class="text-xs text-slate-500 mt-0.5">Manually record Frames, Lenses, and Contact Lenses vendor procurement</p>
+          </div>
+          <button id="btn-close-manual-bill" class="p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer text-sm font-bold">✕</button>
+        </div>
+
+        <!-- Form Body -->
+        <form id="form-manual-bill" class="flex-1 overflow-y-auto p-4 sm:p-6 space-y-5 text-xs touch-scroll">
+          <!-- Supplier & Invoice Information -->
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+            <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">1. Supplier & Invoice Information</h4>
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Supplier Company *</label>
+                <select id="man-sup-select" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg outline-none font-medium">
+                  <option value="">-- Select Registered Supplier --</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Supplier Name (or New) *</label>
+                <input type="text" id="man-sup-name" required placeholder="e.g. EssilorLuxottica" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg outline-none" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Ledger ID / Code</label>
+                <input type="text" id="man-sup-ledger" placeholder="LED-ESS-01" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg outline-none font-mono uppercase font-bold" />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 pt-1">
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Bill / Invoice Number *</label>
+                <input type="text" id="man-bill-number" required placeholder="BIL-2026-901" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg outline-none font-mono font-bold uppercase" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Bill Date *</label>
+                <input type="date" id="man-bill-date" required class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg outline-none" />
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Payment Status</label>
+                <select id="man-payment-status" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg outline-none font-bold text-slate-800">
+                  <option value="Paid">Paid</option>
+                  <option value="Unpaid">Unpaid</option>
+                  <option value="Partial">Partial</option>
+                </select>
+              </div>
+              <div>
+                <label class="block font-semibold text-slate-700 mb-1">Payment Method</label>
+                <select id="man-payment-method" class="w-full px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg outline-none">
+                  <option value="Bank Transfer">Bank Transfer</option>
+                  <option value="UPI">UPI / GPay</option>
+                  <option value="Cash">Cash</option>
+                  <option value="Cheque">Cheque</option>
+                  <option value="Credit Card">Credit Card</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="block font-semibold text-slate-700 mb-1">Stock Intake Destination</label>
+              <div class="flex items-center gap-6">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="man-dest" value="live" checked class="text-blue-600" />
+                  <span class="font-bold text-slate-800">Direct to Live Catalog Stock</span>
+                </label>
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input type="radio" name="man-dest" value="pending" class="text-blue-600" />
+                  <span class="font-bold text-slate-800">Staged in Pending Queue (for sticker printing)</span>
+                </label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Line Items Builder -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <h4 class="font-bold text-slate-800 text-xs uppercase tracking-wider">2. Optical Line Items (Frames, Lenses, Contact Lenses)</h4>
+              <button type="button" id="btn-add-item-row" class="px-3 py-1.5 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold rounded-lg text-xs border border-blue-200 transition-colors flex items-center gap-1 cursor-pointer">
+                <span>+ Add Item Row</span>
+              </button>
+            </div>
+
+            <div id="manual-items-container" class="space-y-3">
+              <!-- Injected dynamically via JS -->
+            </div>
+          </div>
+
+          <!-- Totals Calculation -->
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="space-y-1">
+              <label class="block font-semibold text-slate-700">Notes / Batch Remarks</label>
+              <input type="text" id="man-bill-notes" placeholder="e.g. Received via courier, inspected & tagged" class="w-full sm:w-80 px-3 py-2 text-xs bg-white border border-slate-300 rounded-lg outline-none" />
+            </div>
+
+            <div class="space-y-1 text-right sm:min-w-[200px]">
+              <div class="flex justify-between text-slate-600 text-xs">
+                <span>Calculated Total:</span>
+                <span id="man-calc-total" class="font-extrabold text-blue-700 text-sm">RS 0.00</span>
+              </div>
+              <div class="flex justify-between text-slate-500 text-[11px]">
+                <span>Total Items:</span>
+                <span id="man-calc-items-count" class="font-bold">0 units</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="flex justify-end gap-2 pt-3 border-t border-slate-200">
+            <button type="button" id="btn-cancel-manual-bill" class="px-4 py-2.5 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-xl cursor-pointer">Cancel</button>
+            <button type="submit" id="btn-save-manual-bill" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-md transition-colors cursor-pointer">
+              Confirm & Save Purchase Bill
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Hidden printable receipt iframe container -->
+    <iframe id="print-receipt-iframe" class="hidden" style="display: none;"></iframe>
+
+    <script type="module" src="/src/pages/purchaseBills.ts"></script>
+  </body>
+</html>

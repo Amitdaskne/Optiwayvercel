@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Product Catalog - OPTIWAY</title>
+    <link rel="stylesheet" href="/src/index.css" />
+  </head>
+  <body class="bg-slate-50 min-h-screen flex flex-col antialiased">
+    <div class="flex flex-1 min-h-screen">
+      <!-- Sidebar -->
+      <div id="app-sidebar"></div>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Header -->
+        <div id="app-header"></div>
+
+        <main class="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 pb-24 lg:pb-8 space-y-4 sm:space-y-6">
+          <!-- Page Header & Action Bar -->
+          <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Product & Inventory Management</h2>
+              <p class="text-xs text-slate-500">Manage live catalog, Excel bulk uploads, pending verification, and optical barcodes</p>
+            </div>
+            <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+              <button id="btn-scan-purchase-bill" class="col-span-2 sm:col-span-1 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px]">
+                <svg class="w-4 h-4 shrink-0 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>Scan Purchase Bill (PDF/JPG)</span>
+              </button>
+              <button id="btn-open-excel-import" class="col-span-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px]">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>Import Excel</span>
+              </button>
+              <button id="btn-export-excel" class="col-span-1 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px]" title="Export current catalog to Excel spreadsheet">
+                <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                <span>Export</span>
+              </button>
+              <button id="btn-open-stk-gen-modal" class="col-span-2 sm:col-span-1 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px]">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 11h10M7 15h10"></path>
+                </svg>
+                <span>Stickers (79x10mm)</span>
+              </button>
+              <button id="btn-open-bulk-barcodes" class="col-span-1 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg border border-slate-200 shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px]">
+                <svg class="w-4 h-4 text-blue-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <span>Bulk PDF</span>
+              </button>
+              <button id="btn-open-add-prod" class="col-span-1 px-3.5 py-2 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-lg shadow-2xs transition-colors cursor-pointer flex items-center justify-center min-h-[38px]">
+                <span>+ Add Product</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Navigation Tabs: Live Catalog vs. Pending Queue -->
+          <div class="flex border-b border-slate-200 gap-2 overflow-x-auto whitespace-nowrap no-scrollbar pb-0.5">
+            <button id="tab-btn-live" class="tab-btn active px-4 py-2.5 text-xs font-bold border-b-2 border-blue-600 text-blue-600 flex items-center gap-2 cursor-pointer shrink-0 min-h-[44px]">
+              <span>Live Catalog Stock</span>
+              <span id="badge-live-count" class="px-2 py-0.5 text-[10px] rounded-full bg-blue-100 text-blue-800 font-bold">0</span>
+            </button>
+            <button id="tab-btn-pending" class="tab-btn px-4 py-2.5 text-xs font-bold border-b-2 border-transparent text-slate-500 hover:text-slate-800 flex items-center gap-2 cursor-pointer shrink-0 min-h-[44px]">
+              <div class="flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+                <span>Pending Stock & Barcode Queue</span>
+              </div>
+              <span id="badge-pending-count" class="px-2 py-0.5 text-[10px] rounded-full bg-amber-100 text-amber-900 font-bold">0</span>
+            </button>
+          </div>
+
+          <!-- Live Catalog View Container -->
+          <div id="view-live-catalog" class="space-y-4">
+            <!-- Search & Category Filters -->
+            <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div class="sm:col-span-2">
+                <input type="text" id="prod-search" placeholder="Search product name, Model number, brand, bill number..." class="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-lg outline-none bg-slate-50 focus:bg-white transition-colors min-h-[40px]" />
+              </div>
+              <div>
+                <select id="prod-cat-filter" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none bg-white min-h-[40px]">
+                  <option value="All">All Categories</option>
+                  <option value="Frame">Frames</option>
+                  <option value="Lens">Lenses</option>
+                  <option value="Contact Lens">Contact Lenses</option>
+                  <option value="Accessories">Accessories</option>
+                  <option value="Services">Services</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Live Catalog Selection Toolbar -->
+            <div id="live-selection-bar" class="p-3 bg-blue-50/90 border border-blue-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-blue-950">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-bold text-xs text-blue-900" id="live-selection-count">0 items selected</span>
+                <div class="h-4 w-px bg-blue-300 mx-1"></div>
+                <button id="btn-live-select-all" class="px-2.5 py-1.5 text-[11px] bg-white border border-blue-300 rounded-md font-bold text-blue-800 hover:bg-blue-100 cursor-pointer transition-colors min-h-[32px]">
+                  Select All
+                </button>
+                <button id="btn-live-deselect-all" class="px-2.5 py-1.5 text-[11px] bg-white border border-blue-300 rounded-md font-bold text-blue-800 hover:bg-blue-100 cursor-pointer transition-colors min-h-[32px]">
+                  Deselect All
+                </button>
+              </div>
+              <div class="flex flex-wrap items-center gap-2">
+                <button id="btn-live-print-selected-stickers" class="flex-1 sm:flex-none px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[36px]">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                  </svg>
+                  <span id="btn-live-stickers-label">Generate 79x10mm Stickers</span>
+                </button>
+                <button id="btn-live-bulk-barcode" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[36px]">
+                  Bulk Barcodes
+                </button>
+              </div>
+            </div>
+
+            <!-- Products Table -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+              <div class="overflow-x-auto touch-scroll">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] border-b border-slate-200 whitespace-nowrap">
+                      <th class="p-3.5 w-10 text-center">
+                        <input type="checkbox" id="live-chk-master" class="w-4 h-4 rounded border-slate-300 cursor-pointer" title="Select / Deselect All Live Products" />
+                      </th>
+                      <th class="p-3.5">Image</th>
+                      <th class="p-3.5">Product / Model Number</th>
+                      <th class="p-3.5">Category</th>
+                      <th class="p-3.5">Brand & Model</th>
+                      <th class="p-3.5">Bill / Ledger</th>
+                      <th class="p-3.5">Selling Price</th>
+                      <th class="p-3.5">Cost Price</th>
+                      <th class="p-3.5">Stock Qty</th>
+                      <th class="p-3.5">Status</th>
+                      <th class="p-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbl-products-body" class="divide-y divide-slate-100 text-slate-700">
+                    <tr><td colspan="11" class="p-8 text-center text-slate-400">Loading catalog...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending Stock & Barcode Queue View Container (Initially Hidden) -->
+          <div id="view-pending-queue" class="hidden space-y-4">
+            <!-- Pending Info Banner & Batch Actions -->
+            <div class="p-3.5 sm:p-4 bg-amber-50/80 border border-amber-200 rounded-xl flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-amber-950">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-sm shadow-2xs shrink-0">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-bold text-xs text-amber-900">Pending Staging & Barcode Verification</h4>
+                  <p class="text-[11px] text-amber-800">Items uploaded via Excel or manual intake stay here until stickers are printed and stock is confirmed into live catalog.</p>
+                </div>
+              </div>
+              
+              <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+                <button id="btn-print-all-pending-stickers" class="col-span-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px]">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                  </svg>
+                  <span id="btn-pending-stickers-label">Print Stickers</span>
+                </button>
+                <button id="btn-confirm-all-pending" class="col-span-1 px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px]">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span id="btn-pending-confirm-label">Confirm Stock</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Pending Search & Filter -->
+            <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div class="sm:col-span-2">
+                <input type="text" id="pending-search" placeholder="Filter pending by Bill No, Supplier Ledger, Name, Model Number..." class="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-lg outline-none bg-slate-50 focus:bg-white transition-colors min-h-[40px]" />
+              </div>
+              <div>
+                <select id="pending-bill-filter" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none bg-white font-medium min-h-[40px]">
+                  <option value="All">All Bill Numbers</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pending Selection Quick Toolbar -->
+            <div class="p-3 bg-amber-50/90 border border-amber-200 rounded-xl flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 text-amber-950">
+              <div class="flex flex-wrap items-center gap-2">
+                <span class="font-bold text-xs text-amber-950" id="pending-selection-count">0 items selected</span>
+                <div class="h-4 w-px bg-amber-300 mx-1"></div>
+                <button id="btn-pending-select-all" class="px-2.5 py-1.5 text-[11px] bg-white border border-amber-300 rounded-md font-bold text-amber-900 hover:bg-amber-100 cursor-pointer transition-colors min-h-[32px]">
+                  Select All
+                </button>
+                <button id="btn-pending-deselect-all" class="px-2.5 py-1.5 text-[11px] bg-white border border-amber-300 rounded-md font-bold text-amber-900 hover:bg-amber-100 cursor-pointer transition-colors min-h-[32px]">
+                  Deselect All
+                </button>
+              </div>
+              <div class="flex items-center gap-2">
+                <button id="btn-pending-batch-reject" class="px-3 py-1.5 bg-white border border-rose-300 hover:bg-rose-50 text-rose-700 font-bold text-xs rounded-lg transition-colors cursor-pointer min-h-[32px]">
+                  ✕ Reject Selected
+                </button>
+              </div>
+            </div>
+
+            <!-- Pending Products Table -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+              <div class="overflow-x-auto touch-scroll">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-amber-50/60 text-slate-700 font-bold uppercase text-[11px] border-b border-amber-200 whitespace-nowrap">
+                      <th class="p-3.5 w-10 text-center">
+                        <input type="checkbox" id="pending-chk-master" class="w-4 h-4 rounded border-amber-300 cursor-pointer" title="Select / Deselect All Pending Products" />
+                      </th>
+                      <th class="p-3.5">Bill Number</th>
+                      <th class="p-3.5">Supplier Ledger</th>
+                      <th class="p-3.5">Product / Model Number</th>
+                      <th class="p-3.5">Category</th>
+                      <th class="p-3.5">Brand & Specs</th>
+                      <th class="p-3.5 text-right">Selling Price</th>
+                      <th class="p-3.5 text-right">Cost Price</th>
+                      <th class="p-3.5 text-right">Pending Qty</th>
+                      <th class="p-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbl-pending-body" class="divide-y divide-slate-100 text-slate-700">
+                    <tr><td colspan="10" class="p-8 text-center text-slate-400">Loading pending queue...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Add/Edit Product Modal with Cloudinary Upload -->
+    <div id="modal-prod" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 hidden">
+      <div class="bg-white rounded-2xl max-w-xl w-full p-4 sm:p-6 space-y-4 border border-slate-200 shadow-2xl max-h-[92vh] overflow-y-auto">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h3 id="modal-prod-title" class="font-bold text-slate-900 text-sm">Add New Product</h3>
+          <button id="btn-close-prod-modal" class="p-1 text-slate-400 hover:text-slate-700 rounded-lg cursor-pointer text-lg leading-none">✕</button>
+        </div>
+
+        <form id="form-prod" class="space-y-3">
+          <!-- Bill Number & Supplier Ledger Section -->
+          <div class="p-3 bg-blue-50/70 border border-blue-200 rounded-xl space-y-2">
+            <div class="text-[11px] font-bold text-blue-900 uppercase">Purchase Invoice & Supplier Ledger</div>
+            <div class="grid grid-cols-2 gap-3">
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Bill / Invoice Number</label>
+                <input type="text" id="p-bill-number" placeholder="e.g. BIL-2026-081" class="w-full px-3 py-1.5 text-xs font-mono font-bold uppercase border border-slate-300 rounded-lg outline-none bg-white" />
+              </div>
+              <div>
+                <label class="block text-xs font-semibold text-slate-700 mb-1">Supplier Ledger ID</label>
+                <input type="text" id="p-supplier-ledger" placeholder="e.g. LED-ESS-01" class="w-full px-3 py-1.5 text-xs font-mono font-bold uppercase border border-slate-300 rounded-lg outline-none bg-white" />
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div class="col-span-2 sm:col-span-1">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Product Name *</label>
+              <input type="text" id="p-name" required placeholder="Ray-Ban Wayfarer Classic" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none" />
+            </div>
+            <div class="col-span-2 sm:col-span-1">
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Model Number *</label>
+              <input type="text" id="p-sku" required placeholder="MOD-RB2140" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none font-mono" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Barcode / EAN (Auto/Editable)</label>
+              <div class="flex items-center gap-1.5">
+                <input type="text" id="p-barcode" placeholder="e.g. 890123456789" class="w-full px-3 py-2 text-xs font-mono font-bold text-emerald-800 border border-slate-300 rounded-lg outline-none bg-white focus:border-emerald-500" />
+                <button type="button" id="btn-gen-prod-barcode" class="px-2.5 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border border-emerald-300 font-bold text-xs rounded-lg transition-colors cursor-pointer" title="Auto-generate / Refresh Barcode">⚡</button>
+              </div>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">HSN Code (GST)</label>
+              <input type="text" id="p-hsn" placeholder="e.g. 9003" class="w-full px-3 py-2 text-xs font-mono text-amber-800 border border-slate-300 rounded-lg outline-none bg-white focus:border-amber-500" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Size (Optional)</label>
+              <input type="text" id="p-size" placeholder="e.g. 54, 54/24, 58mm" class="w-full px-3 py-2 text-xs text-sky-800 border border-slate-300 rounded-lg outline-none bg-white focus:border-sky-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Colour / Shade (Optional)</label>
+              <input type="text" id="p-color" placeholder="e.g. C2, Red, Black, Gold" class="w-full px-3 py-2 text-xs text-purple-800 border border-slate-300 rounded-lg outline-none bg-white focus:border-purple-500" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Category *</label>
+              <select id="p-category" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none bg-white">
+                <option value="Frame">Frame</option>
+                <option value="Lens">Lens</option>
+                <option value="Contact Lens">Contact Lens</option>
+                <option value="Accessories">Accessories</option>
+                <option value="Services">Services</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Brand Name</label>
+              <input type="text" id="p-brand" placeholder="Ray-Ban" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Model / Specs</label>
+              <input type="text" id="p-model" placeholder="RB2140 Black 50mm" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Supplier Name</label>
+              <input type="text" id="p-supplier" placeholder="EssilorLuxottica" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Selling Price (RS) *</label>
+              <input type="number" step="0.01" min="0" id="p-selling" required placeholder="165.00" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Purchase Cost (RS)</label>
+              <input type="number" step="0.01" min="0" id="p-purchase" placeholder="85.00" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none" />
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Current Stock Quantity *</label>
+              <input type="number" min="0" id="p-stock" required placeholder="15" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Minimum Stock Alert Level</label>
+              <input type="number" min="0" id="p-minstock" placeholder="5" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none" />
+            </div>
+          </div>
+
+          <!-- Staging Destination Selector for new items -->
+          <div id="box-prod-destination" class="p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs space-y-1.5">
+            <label class="font-bold text-slate-800 block">Workflow Destination:</label>
+            <div class="flex items-center gap-4">
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="prod-add-target" value="live" checked class="text-blue-600" />
+                <span class="font-semibold text-slate-800">Add directly to Live Stock</span>
+              </label>
+              <label class="flex items-center gap-1.5 cursor-pointer">
+                <input type="radio" name="prod-add-target" value="pending" class="text-amber-600" />
+                <span class="font-semibold text-slate-800">Stage in Pending Queue (for Barcode / QR)</span>
+              </label>
+            </div>
+          </div>
+
+          <!-- Cloudinary Image Upload Field -->
+          <div class="border border-slate-200 p-3 rounded-lg bg-slate-50 space-y-2">
+            <label class="block text-xs font-bold text-slate-700">Product Image (Cloudinary)</label>
+            <input type="file" id="p-image-file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
+            <input type="text" id="p-image-url" placeholder="Or enter direct image URL" class="w-full px-3 py-1.5 text-xs border border-slate-300 rounded-lg outline-none bg-white" />
+            
+            <div id="upload-progress-container" class="hidden space-y-1">
+              <div class="w-full bg-slate-200 h-2 rounded-full overflow-hidden">
+                <div id="upload-progress-bar" class="bg-blue-600 h-full w-0 transition-all duration-150"></div>
+              </div>
+              <p id="upload-status-text" class="text-[10px] text-slate-500 font-semibold">Uploading to Cloudinary...</p>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+            <button type="button" id="btn-cancel-prod-modal" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg cursor-pointer">Cancel</button>
+            <button type="submit" id="btn-save-prod" class="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-700 cursor-pointer">Save Product</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="/src/pages/products.ts"></script>
+  </body>
+</html>

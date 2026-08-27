@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Invoice - OPTIWAY</title>
+    <link rel="stylesheet" href="/src/index.css" />
+  </head>
+  <body class="bg-slate-50 min-h-screen flex flex-col antialiased">
+    <div class="flex flex-1 min-h-screen">
+      <!-- Sidebar -->
+      <div id="app-sidebar"></div>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Header -->
+        <div id="app-header"></div>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
+          <!-- Control Bar -->
+          <div class="no-print flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-xl border border-slate-200 shadow-2xs max-w-4xl mx-auto">
+            <div class="flex flex-wrap items-center gap-3">
+              <label class="text-xs font-bold text-slate-700">Lookup Invoice / Bill:</label>
+              <select id="select-sale-lookup" class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg outline-none bg-white font-bold max-w-xs">
+                <!-- Dynamically populated -->
+              </select>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="btn-open-add-lens-modal" class="px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold text-xs rounded-lg transition-colors border border-blue-200 inline-flex items-center gap-1 cursor-pointer">
+                <span>👓 + Add Lens to Bill</span>
+              </button>
+              <button id="btn-download-pdf-invoice" class="px-3.5 py-2 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-lg shadow-2xs transition-colors inline-flex items-center gap-1.5 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                <span>Download PDF</span>
+              </button>
+              <button id="btn-print-thermal-receipt" class="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold text-xs rounded-lg transition-colors border border-teal-200 inline-flex items-center gap-1.5 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1Z"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"/><path d="M12 6v2m0 8v2"/></svg>
+                <span>80mm Thermal</span>
+              </button>
+              <button id="btn-print-invoice" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect width="12" height="8" x="6" y="14" rx="1"/></svg>
+                <span>Print Invoice</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Add Lens to Existing Invoice Modal (No-Print) -->
+          <div id="modal-add-lens-invoice" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 hidden no-print">
+            <div class="bg-white rounded-2xl max-w-xl w-full p-6 shadow-2xl border border-slate-200 space-y-4 max-h-[90vh] overflow-y-auto">
+              <div class="flex items-center justify-between border-b border-slate-200 pb-3">
+                <div class="flex items-center gap-2">
+                  <span class="w-8 h-8 rounded-lg bg-blue-600 text-white flex items-center justify-center text-sm font-bold">👓</span>
+                  <div>
+                    <h3 class="font-extrabold text-slate-900 text-sm">Add Optical Lens & Prescription</h3>
+                    <p class="text-[11px] text-slate-500">Append custom lens item with price & Rx parameters directly to this bill</p>
+                  </div>
+                </div>
+                <button type="button" id="btn-close-lens-modal" class="text-slate-400 hover:text-slate-600 p-1 cursor-pointer">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+              </div>
+
+              <div class="space-y-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="sm:col-span-2">
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Lens Type / Coating / Brand *</label>
+                    <input 
+                      type="text" 
+                      id="inv-modal-lens-name" 
+                      list="inv-modal-preset-lens"
+                      placeholder="e.g. Single Vision Anti-Glare 1.56" 
+                      class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:border-blue-500 font-semibold"
+                    />
+                    <datalist id="inv-modal-preset-lens">
+                      <option value="Single Vision Anti-Glare (ARC) 1.56"></option>
+                      <option value="Blue Cut Single Vision (UV420) 1.56"></option>
+                      <option value="Photochromic / Transition Day-Night ARC"></option>
+                      <option value="Progressive Multifocal Blue Cut 1.61"></option>
+                      <option value="Bifocal D-Kryptok Anti-Glare"></option>
+                      <option value="High Index Ultra-Thin 1.67 Aspheric"></option>
+                      <option value="High Index 1.74 Blue Block"></option>
+                      <option value="Polycarbonate Impact-Resistant"></option>
+                      <option value="Contact Lens (Monthly / Daily)"></option>
+                    </datalist>
+                  </div>
+
+                  <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Lens Price (RS) *</label>
+                    <input 
+                      type="number" 
+                      id="inv-modal-lens-price" 
+                      placeholder="1200" 
+                      min="0" 
+                      step="10"
+                      class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:border-blue-500 font-extrabold text-blue-900"
+                    />
+                  </div>
+                </div>
+
+                <!-- Quick Optical Power Form -->
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-3">
+                  <div>
+                    <div class="flex justify-between items-center mb-1">
+                      <span class="text-[11px] font-bold text-blue-700 uppercase">Right Eye (OD)</span>
+                      <span class="text-[10px] font-semibold text-slate-400">Oculus Dexter</span>
+                    </div>
+                    <div class="grid grid-cols-5 gap-2 text-xs">
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">SPH</label>
+                        <input type="text" id="inv-modal-od-sph" placeholder="0.00" class="w-full p-1.5 text-xs text-center border rounded bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">CYL</label>
+                        <input type="text" id="inv-modal-od-cyl" placeholder="0.00" class="w-full p-1.5 text-xs text-center border rounded bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">AXIS</label>
+                        <input type="text" id="inv-modal-od-axis" placeholder="0" class="w-full p-1.5 text-xs text-center border rounded bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">ADD</label>
+                        <input type="text" id="inv-modal-od-add" placeholder="+2.00" class="w-full p-1.5 text-xs text-center border rounded bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">VA</label>
+                        <input type="text" id="inv-modal-od-va" placeholder="6/6" class="w-full p-1.5 text-xs text-center border rounded bg-white font-semibold" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div class="flex justify-between items-center mb-1">
+                      <span class="text-[11px] font-bold text-blue-700 uppercase">Left Eye (OS)</span>
+                      <div class="flex items-center gap-2">
+                        <button type="button" id="inv-modal-btn-copy-od" class="text-[10px] text-blue-600 hover:text-blue-800 font-bold bg-white px-2 py-0.5 rounded border border-blue-200 cursor-pointer">
+                          Copy OD &rarr; OS
+                        </button>
+                        <span class="text-[10px] font-semibold text-slate-400">Oculus Sinister</span>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-5 gap-2 text-xs">
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">SPH</label>
+                        <input type="text" id="inv-modal-os-sph" placeholder="0.00" class="w-full p-1.5 text-xs text-center border rounded bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">CYL</label>
+                        <input type="text" id="inv-modal-os-cyl" placeholder="0.00" class="w-full p-1.5 text-xs text-center border rounded bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">AXIS</label>
+                        <input type="text" id="inv-modal-os-axis" placeholder="0" class="w-full p-1.5 text-xs text-center border rounded bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">ADD</label>
+                        <input type="text" id="inv-modal-os-add" placeholder="+2.00" class="w-full p-1.5 text-xs text-center border rounded bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">VA</label>
+                        <input type="text" id="inv-modal-os-va" placeholder="6/6" class="w-full p-1.5 text-xs text-center border rounded bg-white font-semibold" />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="grid grid-cols-2 gap-3 pt-1">
+                    <div>
+                      <label class="block text-[10px] font-bold text-slate-600 mb-0.5">PD (Pupillary Distance mm)</label>
+                      <input type="text" id="inv-modal-pd" placeholder="63 mm" class="w-full p-1.5 text-xs border rounded bg-white" />
+                    </div>
+                    <div>
+                      <label class="block text-[10px] font-bold text-slate-600 mb-0.5">Prescription Notes / Coating Specs</label>
+                      <input type="text" id="inv-modal-notes" placeholder="e.g. Anti-reflective UV coating" class="w-full p-1.5 text-xs border rounded bg-white" />
+                    </div>
+                  </div>
+
+                  <!-- Modal Presets -->
+                  <div class="flex flex-wrap items-center justify-between gap-1.5 pt-1 border-t border-slate-200">
+                    <div class="flex items-center gap-1.5">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase">Quick Add:</span>
+                      <button type="button" class="inv-btn-rx-preset text-[10px] bg-white hover:bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded border border-slate-200 cursor-pointer" data-add="+1.00">+1.00</button>
+                      <button type="button" class="inv-btn-rx-preset text-[10px] bg-white hover:bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded border border-slate-200 cursor-pointer" data-add="+1.50">+1.50</button>
+                      <button type="button" class="inv-btn-rx-preset text-[10px] bg-white hover:bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded border border-slate-200 cursor-pointer" data-add="+2.00">+2.00</button>
+                      <button type="button" class="inv-btn-rx-preset text-[10px] bg-white hover:bg-slate-100 text-slate-700 font-semibold px-2 py-0.5 rounded border border-slate-200 cursor-pointer" data-add="+2.50">+2.50</button>
+                    </div>
+                    <button type="button" id="inv-btn-clear-rx" class="text-[10px] text-rose-600 hover:underline font-semibold cursor-pointer">Clear Form</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex justify-end gap-2 pt-2 border-t border-slate-200">
+                <button type="button" id="btn-cancel-lens-modal" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer">
+                  Cancel
+                </button>
+                <button type="button" id="btn-save-lens-invoice" class="px-5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                  <span>Append Lens to Invoice</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pending Balance Collection Terminal (No-Print) -->
+          <div id="panel-collect-balance" class="no-print bg-amber-50/80 border-2 border-amber-300 p-5 rounded-2xl shadow-sm max-w-4xl mx-auto space-y-4 hidden">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-amber-200 pb-3">
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="p-1 bg-amber-500 text-white rounded-md text-xs font-bold">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  </span>
+                  <h3 class="font-extrabold text-amber-900 text-sm sm:text-base">Pending Balance Collection Terminal</h3>
+                </div>
+                <p class="text-xs text-amber-800 mt-0.5">Collect remaining amount and choose to save as pending or finalize as completed sale</p>
+              </div>
+              <span id="badge-invoice-status" class="px-3 py-1 bg-amber-100 text-amber-900 border border-amber-300 rounded-full font-extrabold text-xs self-start sm:self-auto">
+                Pending Balance Due
+              </span>
+            </div>
+
+            <!-- Financial Summary Cards -->
+            <div class="grid grid-cols-3 gap-2.5 sm:gap-3 text-center">
+              <div class="bg-white p-3 rounded-xl border border-amber-200">
+                <span class="text-[10px] text-slate-500 font-bold uppercase block">Grand Total</span>
+                <span id="terminal-grand-total" class="text-xs sm:text-sm font-extrabold text-slate-900 mt-0.5">RS 0.00</span>
+              </div>
+              <div class="bg-white p-3 rounded-xl border border-amber-200">
+                <span class="text-[10px] text-slate-500 font-bold uppercase block">Advance Paid</span>
+                <span id="terminal-advance-paid" class="text-xs sm:text-sm font-extrabold text-emerald-700 mt-0.5">RS 0.00</span>
+              </div>
+              <div class="bg-amber-100 p-3 rounded-xl border border-amber-300">
+                <span class="text-[10px] text-amber-800 font-extrabold uppercase block">Remaining Due</span>
+                <span id="terminal-pending-due" class="text-xs sm:text-sm font-black text-amber-900 mt-0.5">RS 0.00</span>
+              </div>
+            </div>
+
+            <!-- Payment Collection Inputs -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white p-4 rounded-xl border border-amber-200">
+              <div>
+                <div class="flex justify-between items-center mb-1">
+                  <label class="block text-xs font-bold text-slate-800">Amount to Collect (RS)</label>
+                  <button type="button" id="btn-terminal-set-full" class="text-[10px] font-bold text-blue-600 hover:underline">Set Full Due</button>
+                </div>
+                <input type="number" id="input-terminal-collect-amount" min="0.01" step="0.01" placeholder="0.00" class="w-full px-3 py-2 text-xs font-extrabold border border-slate-300 rounded-lg outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500" />
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-800 mb-1">Payment Method</label>
+                <select id="select-terminal-method" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:border-amber-500 font-semibold bg-white">
+                  <option value="Cash">Cash</option>
+                  <option value="UPI">UPI / Digital</option>
+                  <option value="Card">Card</option>
+                </select>
+              </div>
+
+              <div>
+                <label class="block text-xs font-bold text-slate-800 mb-1">Receipt Note / Remark</label>
+                <input type="text" id="input-terminal-notes" placeholder="e.g. Frame delivery payment" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none focus:border-amber-500 bg-white" />
+              </div>
+            </div>
+
+            <!-- Action Buttons: Save to Pending vs Save as Sale -->
+            <div class="flex flex-col sm:flex-row items-center gap-2.5 pt-1">
+              <button type="button" id="btn-terminal-save-pending" class="w-full sm:flex-1 py-3 bg-amber-500 hover:bg-amber-600 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>Save to Pending (Partial / Still In Lab)</span>
+              </button>
+
+              <button type="button" id="btn-terminal-save-sale" class="w-full sm:flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+                <span>Settle Full & Save as Sale (Finalized)</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Fully Paid Confirmation Banner (No-Print) -->
+          <div id="banner-fully-paid" class="no-print bg-emerald-50 border border-emerald-200 p-4 rounded-2xl max-w-4xl mx-auto flex items-center justify-between gap-3 hidden">
+            <div class="flex items-center gap-2.5">
+              <span class="w-8 h-8 rounded-xl bg-emerald-600 text-white flex items-center justify-center font-bold">✓</span>
+              <div>
+                <h4 class="font-extrabold text-emerald-900 text-xs sm:text-sm">This Bill is Fully Paid & Completed</h4>
+                <p class="text-[11px] text-emerald-700">All balances are settled. Recorded in Sales History.</p>
+              </div>
+            </div>
+            <a href="sales-history.html" class="px-3 py-1.5 bg-emerald-600 text-white font-bold text-xs rounded-lg hover:bg-emerald-700 transition-colors shrink-0">
+              View in Sales History &rarr;
+            </a>
+          </div>
+
+          <!-- Printable Invoice Container -->
+          <div class="printable-area bg-white p-6 sm:p-8 rounded-2xl border border-slate-200 shadow-xl max-w-4xl mx-auto space-y-6">
+            <!-- Header Section -->
+            <div class="flex flex-wrap justify-between items-start border-b border-slate-200 pb-6 gap-4">
+              <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-xl bg-blue-600 text-white font-black text-2xl flex items-center justify-center shadow-md">
+                  O
+                </div>
+                <div>
+                  <h1 id="inv-store-name" class="text-xl font-black tracking-tight text-slate-900">OPTIWAY VISION CARE</h1>
+                  <p id="inv-store-address" class="text-xs text-slate-500">742 Vision Avenue, Suite 100, New York, NY 10001</p>
+                  <p id="inv-store-contact" class="text-xs text-slate-500">Phone: +1 800-555-0199 | Email: contact@optiway.com</p>
+                </div>
+              </div>
+
+              <div class="text-right">
+                <span id="inv-tax-badge" class="text-xs font-black uppercase text-blue-600 bg-blue-50 px-3 py-1 rounded border border-blue-200 block mb-2">TAX INVOICE</span>
+                <p class="text-xs font-bold text-slate-900">Invoice No: <span id="inv-number" class="text-blue-700">OPT-INV-0000</span></p>
+                <p class="text-xs text-slate-500">Date: <span id="inv-date">2026-08-09</span></p>
+              </div>
+            </div>
+
+            <!-- Customer & Order Information Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 p-4 bg-slate-50 rounded-xl border border-slate-200 text-xs">
+              <div>
+                <h3 class="font-bold uppercase text-[10px] text-slate-400 mb-1 tracking-wider">BILLED TO CUSTOMER</h3>
+                <p id="inv-cust-name" class="text-sm font-extrabold text-slate-900">Walk-in Customer</p>
+                <p id="inv-cust-phone" class="text-slate-600">+1 000-000-0000</p>
+                <p id="inv-cust-address" class="text-slate-500">N/A</p>
+              </div>
+
+              <div>
+                <h3 class="font-bold uppercase text-[10px] text-slate-400 mb-1 tracking-wider">TRANSACTION DETAILS</h3>
+                <p class="text-slate-600">Sale Ref: <strong id="inv-sale-ref" class="text-slate-900">OPT-SL-0000</strong></p>
+                <p class="text-slate-600">Payment Method: <strong id="inv-pay-method" class="text-slate-900">Cash</strong></p>
+                <p class="text-slate-600">Status: <strong id="inv-status" class="text-emerald-700">Completed</strong></p>
+              </div>
+            </div>
+
+            <!-- Optical Prescription Section (If available) -->
+            <div id="inv-rx-box" class="hidden p-4 bg-blue-50/50 rounded-xl border border-blue-100 text-xs space-y-2">
+              <h3 class="font-bold text-blue-900 text-xs uppercase tracking-wider">Associated Optical Prescription (Rx)</h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-[11px]">
+                <div class="p-2 bg-white rounded border border-blue-100">
+                  <strong class="text-blue-700 block">Right Eye (OD)</strong>
+                  <span id="inv-rx-od">SPH: 0.00, CYL: 0.00, AXIS: 0, ADD: 0.00</span>
+                </div>
+                <div class="p-2 bg-white rounded border border-blue-100">
+                  <strong class="text-blue-700 block">Left Eye (OS)</strong>
+                  <span id="inv-rx-os">SPH: 0.00, CYL: 0.00, AXIS: 0, ADD: 0.00</span>
+                </div>
+              </div>
+              <p class="text-[10px] text-slate-500">PD: <strong id="inv-rx-pd">63 mm</strong></p>
+            </div>
+
+            <!-- Itemized Products Table -->
+            <div class="border border-slate-200 rounded-xl overflow-hidden">
+              <table class="w-full text-left border-collapse text-xs">
+                <thead>
+                  <tr class="bg-slate-100 text-slate-700 font-bold uppercase text-[10px] border-b border-slate-200">
+                    <th class="p-3">Item Description</th>
+                    <th class="p-3 w-16 text-center">Qty</th>
+                    <th class="p-3 w-20 text-right">Unit Price</th>
+                    <th class="p-3 w-20 text-right">Discount</th>
+                    <th class="p-3 w-24 text-right">Total Amount</th>
+                  </tr>
+                </thead>
+                <tbody id="tbl-inv-items" class="divide-y divide-slate-100 text-slate-800">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Financial Totals Summary -->
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 pt-2">
+              <div class="text-[11px] text-slate-500 max-w-sm space-y-1">
+                <p class="font-bold text-slate-700 uppercase text-[10px]">Terms & Conditions</p>
+                <p>1. Frames and lenses come with 12-month optical defect warranty.</p>
+                <p>2. Advance deposits are non-refundable after lab custom lens edger processing begins.</p>
+                <p>3. Please present this invoice for frame fitting and optical pickups.</p>
+              </div>
+
+              <div class="w-full sm:w-64 bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs">
+                <div class="flex justify-between text-slate-600">
+                  <span>Subtotal:</span>
+                  <span id="inv-subtotal" class="font-semibold text-slate-900">$0.00</span>
+                </div>
+                <div class="flex justify-between text-slate-600">
+                  <span>Discount:</span>
+                  <span id="inv-discount" class="font-semibold text-rose-600">-$0.00</span>
+                </div>
+                <div class="flex justify-between text-slate-600">
+                  <span id="inv-tax-label">Sales Tax (GST):</span>
+                  <span id="inv-tax" class="font-semibold text-slate-900">RS 0.00</span>
+                </div>
+                <div class="flex justify-between text-sm font-black text-slate-900 pt-2 border-t border-slate-200">
+                  <span>Grand Total:</span>
+                  <span id="inv-grand-total" class="text-blue-600">$0.00</span>
+                </div>
+                <div class="flex justify-between text-emerald-700 font-bold pt-1 border-t border-slate-200">
+                  <span>Advance Amount Paid:</span>
+                  <span id="inv-advance">$0.00</span>
+                </div>
+                <div class="flex justify-between text-amber-700 font-extrabold">
+                  <span>Pending Balance:</span>
+                  <span id="inv-pending">$0.00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Footer Authorization -->
+            <div class="flex justify-between items-center pt-8 border-t border-slate-100 text-[11px] text-slate-400">
+              <p>Thank you for choosing OPTIWAY Vision Care!</p>
+              <div class="text-right">
+                <div class="border-b border-slate-300 w-36 mb-1"></div>
+                <p class="font-bold text-slate-700">Authorized Signature</p>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <script type="module" src="/src/pages/invoice.ts"></script>
+  </body>
+</html>

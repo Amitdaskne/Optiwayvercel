@@ -1,0 +1,22 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "rewrites": [
+    { "source": "/products", "destination": "/products.html" },
+    { "source": "/inventory", "destination": "/inventory.html" },
+    { "source": "/sales", "destination": "/sales.html" },
+    { "source": "/orders", "destination": "/orders.html" },
+    { "source": "/sales-history", "destination": "/sales-history.html" },
+    { "source": "/customers", "destination": "/customers.html" },
+    { "source": "/purchase-bills", "destination": "/purchase-bills.html" },
+    { "source": "/suppliers", "destination": "/suppliers.html" },
+    { "source": "/reports", "destination": "/reports.html" },
+    { "source": "/expenses", "destination": "/expenses.html" },
+    { "source": "/prescriptions", "destination": "/prescriptions.html" },
+    { "source": "/invoice", "destination": "/invoice.html" },
+    { "source": "/settings", "destination": "/settings.html" },
+    { "source": "/dashboard", "destination": "/dashboard.html" },
+    { "source": "/login", "destination": "/login.html" },
+    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
+  ]
+}

@@ -1,0 +1,716 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Sale / POS - OPTIWAY</title>
+    <link rel="stylesheet" href="/src/index.css" />
+  </head>
+  <body class="bg-slate-50 min-h-screen flex flex-col antialiased selection:bg-blue-600 selection:text-white">
+    <div class="flex flex-1 min-h-screen">
+      <!-- Sidebar -->
+      <div id="app-sidebar"></div>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Header -->
+        <div id="app-header"></div>
+
+        <main class="flex-1 overflow-y-auto p-3 sm:p-6 md:p-8 pb-24 lg:pb-8 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 bg-white p-4 rounded-xl border border-[#e5e7eb] shadow-2xs max-w-7xl mx-auto">
+            <div>
+              <h2 class="text-base font-bold text-[#111827]">Optical Point of Sale (POS)</h2>
+              <p class="text-xs text-[#6b7280]">Process frame, lens, and contact lens transactions</p>
+            </div>
+            <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2">
+              <a href="orders.html" class="px-3 py-2 bg-amber-50 hover:bg-amber-100 text-amber-800 font-bold text-xs rounded-lg transition-colors border border-amber-200 flex items-center justify-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <span>Pending Orders</span>
+              </a>
+              <a href="sales-history.html" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors border border-slate-200 flex items-center justify-center gap-1.5">
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l4 2"/></svg>
+                <span>Sales History</span>
+              </a>
+              <button id="btn-sales-download-today-pdf" class="px-3 py-2 bg-rose-700 hover:bg-rose-800 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px]">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>Today PDF</span>
+              </button>
+              <button id="btn-sales-download-today" class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer min-h-[38px]">
+                <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                <span>Today CSV</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-7xl mx-auto">
+            
+            <!-- Left Column: Customer Details, Product Selector & Prescriptions (7 Cols) -->
+            <div class="lg:col-span-7 space-y-6">
+              
+              <!-- 1. Customer Information Card -->
+              <div class="bg-white p-5 rounded-xl border border-[#e5e7eb] shadow-2xs space-y-4">
+                <div class="flex items-center justify-between border-b border-[#e5e7eb] pb-3">
+                  <div class="flex items-center gap-2">
+                    <h2 class="text-xs font-bold text-[#111827] uppercase tracking-wider">1. Customer / Patient Details</h2>
+                    <span id="badge-cust-type" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-100 text-slate-700 border border-slate-200">Patient: Not Selected</span>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button type="button" id="btn-save-new-patient" class="text-xs font-bold text-blue-700 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 border border-blue-200 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                      <span>Save as New Patient</span>
+                    </button>
+                    <button type="button" id="btn-quick-walkin" class="text-xs font-bold text-slate-700 hover:text-slate-900 bg-slate-100 hover:bg-slate-200 px-2.5 py-1 rounded-lg transition-colors flex items-center gap-1">
+                      <span>Default Walk-in</span>
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Customer Search Bar with Instant Autocomplete -->
+                <div id="cust-search-container" class="relative">
+                  <label class="block text-xs font-semibold text-[#6b7280] mb-1">Search Customer by Name or Mobile (Supports multiple patients per phone)</label>
+                  <div class="relative">
+                    <input 
+                      type="text" 
+                      id="input-cust-search" 
+                      placeholder="Type name or mobile number to search database..." 
+                      class="w-full pl-8 pr-3.5 py-2 text-xs border border-[#e5e7eb] rounded-lg focus:ring-2 focus:ring-[#1f6feb] outline-none bg-gray-50 focus:bg-white transition-all font-medium"
+                    />
+                    <span class="absolute left-2.5 top-2.5 text-gray-400">
+                      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                    </span>
+                  </div>
+                  <div id="cust-search-results" class="hidden absolute top-full left-0 right-0 mt-1 bg-white border border-[#e5e7eb] rounded-lg shadow-xl max-h-56 overflow-y-auto z-40"></div>
+                </div>
+
+                <!-- Direct Customer Name & Mobile Inputs (Always accessible and visible) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50/70 p-3.5 rounded-xl border border-slate-200">
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Customer / Patient Name *</label>
+                    <input 
+                      type="text" 
+                      id="input-customer-name" 
+                      placeholder="Type patient name or search above" 
+                      class="w-full px-3 py-2 text-xs font-bold text-slate-900 border border-slate-300 rounded-lg outline-none focus:border-blue-500 bg-white" 
+                    />
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Mobile / Phone Number *</label>
+                    <input 
+                      type="text" 
+                      id="input-customer-mobile" 
+                      placeholder="e.g. +91 9876543210 (can be shared by family)" 
+                      class="w-full px-3 py-2 text-xs font-bold text-slate-900 border border-slate-300 rounded-lg outline-none focus:border-blue-500 bg-white" 
+                    />
+                  </div>
+                  <div class="sm:col-span-2 flex flex-col sm:flex-row gap-2 pt-1 text-[11px] text-slate-500">
+                    <div class="flex-1">
+                      <input 
+                        type="text" 
+                        id="input-customer-address" 
+                        placeholder="Customer Address / Street (optional)" 
+                        class="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg outline-none bg-white font-medium" 
+                      />
+                    </div>
+                    <div class="flex-1">
+                      <input 
+                        type="email" 
+                        id="input-customer-email" 
+                        placeholder="Email Address (optional)" 
+                        class="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg outline-none bg-white font-medium" 
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- 2. Product Picker & Cart Items -->
+              <div class="bg-white p-5 rounded-xl border border-[#e5e7eb] shadow-2xs space-y-4">
+                <div class="flex items-center justify-between border-b border-[#e5e7eb] pb-3">
+                  <h2 class="text-xs font-bold text-[#111827] uppercase tracking-wider">2. Product Selection</h2>
+                  <span id="cart-item-count" class="text-xs font-semibold text-[#6b7280]">0 items in cart</span>
+                </div>
+
+                <!-- Product Search & Filter -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="sm:col-span-2">
+                    <label class="block text-[11px] font-semibold text-[#6b7280] mb-1">Search Product / Model Number</label>
+                    <input type="text" id="input-prod-search" placeholder="Type frame name, brand, Model Number..." class="w-full px-3 py-2 text-xs border border-[#e5e7eb] rounded-lg outline-none bg-gray-50 focus:bg-white" />
+                  </div>
+                  <div>
+                    <label class="block text-[11px] font-semibold text-[#6b7280] mb-1">Category</label>
+                    <select id="select-prod-category" class="w-full px-3 py-2 text-xs border border-[#e5e7eb] rounded-lg outline-none bg-gray-50 focus:bg-white">
+                      <option value="All">All Categories</option>
+                      <option value="Frame">Frames</option>
+                      <option value="Lens">Lenses</option>
+                      <option value="Contact Lens">Contact Lenses</option>
+                      <option value="Accessories">Accessories</option>
+                      <option value="Services">Services</option>
+                    </select>
+                  </div>
+                </div>
+
+                <!-- Product Catalog Select Options Box -->
+                <div id="product-picker-results" class="max-h-40 overflow-y-auto border border-[#e5e7eb] rounded-lg divide-y divide-[#e5e7eb]">
+                  <p class="text-xs text-[#6b7280] p-3 text-center">Loading product catalog...</p>
+                </div>
+
+                <!-- Current Cart Items Table -->
+                <div class="border border-[#e5e7eb] rounded-lg overflow-hidden">
+                  <table class="w-full text-left text-xs border-collapse">
+                    <thead>
+                      <tr class="bg-gray-50 text-[#6b7280] font-semibold uppercase text-[10px] tracking-wider border-b border-[#e5e7eb]">
+                        <th class="p-2.5">Product / Lens & Rx Details</th>
+                        <th class="p-2.5 w-16">Price</th>
+                        <th class="p-2.5 w-16">Qty</th>
+                        <th class="p-2.5 w-16">Disc.</th>
+                        <th class="p-2.5 w-20 text-right">Total</th>
+                        <th class="p-2.5 w-10"></th>
+                      </tr>
+                    </thead>
+                    <tbody id="tbl-cart-body" class="divide-y divide-[#e5e7eb]">
+                      <tr>
+                        <td colspan="6" class="p-4 text-center text-[#6b7280]">Cart is empty. Select products from above or configure lens below.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- 3. Optical Lens & Customer Prescription Builder -->
+              <!-- 3. Lens & Optical Prescription Section -->
+              <div class="bg-white p-5 rounded-xl border border-[#e5e7eb] shadow-2xs space-y-4">
+                <div class="flex items-center justify-between border-b border-[#e5e7eb] pb-3">
+                  <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-md bg-blue-600 text-white flex items-center justify-center text-xs font-bold">👓</span>
+                    <h2 class="text-xs font-bold text-[#111827] uppercase tracking-wider">3. Optical Lens & Prescription Details</h2>
+                  </div>
+                  <span class="text-[10px] bg-blue-100 text-blue-800 font-bold px-2 py-0.5 rounded-full">Included in Invoice & Lab Job</span>
+                </div>
+
+                <!-- Lens Side Selection (RE / LE / Pair) -->
+                <div class="p-3 bg-blue-50/60 rounded-xl border border-blue-200 space-y-2">
+                  <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-800">Select Eye / Lens Side *</label>
+                      <p class="text-[10px] text-slate-500">Choose if customer wants a Pair or single side lens (RE or LE only)</p>
+                    </div>
+                    <span id="badge-eye-side-status" class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-300 self-start sm:self-auto">
+                      Both Eyes (Pair - RE & LE)
+                    </span>
+                  </div>
+
+                  <div class="grid grid-cols-3 gap-2">
+                    <label id="label-eye-both" class="flex flex-col items-center justify-center p-2.5 rounded-xl border-2 border-blue-600 bg-white text-center cursor-pointer transition-all shadow-2xs">
+                      <input type="radio" name="lens-eye-side" value="Both" class="sr-only" checked />
+                      <span class="text-xs font-bold text-slate-900 block">Both Eyes</span>
+                      <span class="text-[9.5px] font-semibold text-blue-700">Pair (RE + LE)</span>
+                    </label>
+
+                    <label id="label-eye-re" class="flex flex-col items-center justify-center p-2.5 rounded-xl border-2 border-slate-200 bg-white text-center cursor-pointer transition-all hover:bg-slate-50">
+                      <input type="radio" name="lens-eye-side" value="RE" class="sr-only" />
+                      <span class="text-xs font-bold text-slate-900 block">Right Eye (RE)</span>
+                      <span class="text-[9.5px] font-semibold text-emerald-700">Single Lens (OD)</span>
+                    </label>
+
+                    <label id="label-eye-le" class="flex flex-col items-center justify-center p-2.5 rounded-xl border-2 border-slate-200 bg-white text-center cursor-pointer transition-all hover:bg-slate-50">
+                      <input type="radio" name="lens-eye-side" value="LE" class="sr-only" />
+                      <span class="text-xs font-bold text-slate-900 block">Left Eye (LE)</span>
+                      <span class="text-[9.5px] font-semibold text-purple-700">Single Lens (OS)</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Lens Specification & Price -->
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div class="sm:col-span-2">
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Lens Type / Coating / Brand *</label>
+                    <input 
+                      type="text" 
+                      id="input-custom-lens-name" 
+                      list="preset-lens-types"
+                      placeholder="e.g. Single Vision Anti-Glare 1.56 / Blue Cut Progressive" 
+                      class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none bg-white font-semibold text-slate-900 focus:border-blue-500" 
+                    />
+                    <datalist id="preset-lens-types">
+                      <option value="Single Vision Anti-Glare (ARC) 1.56"></option>
+                      <option value="Blue Cut Single Vision (UV420) 1.56"></option>
+                      <option value="Photochromic / Transition Day-Night ARC"></option>
+                      <option value="Progressive Multifocal Blue Cut 1.61"></option>
+                      <option value="Bifocal D-Kryptok Anti-Glare"></option>
+                      <option value="High Index Ultra-Thin 1.67 Aspheric"></option>
+                      <option value="High Index 1.74 Blue Block"></option>
+                      <option value="Polycarbonate Impact-Resistant"></option>
+                      <option value="Contact Lens (Monthly / Daily)"></option>
+                    </datalist>
+                  </div>
+
+                  <div>
+                    <label class="block text-[11px] font-bold text-slate-700 mb-1">Lens Price (RS) *</label>
+                    <input 
+                      type="number" 
+                      id="input-custom-lens-price" 
+                      placeholder="e.g. 600" 
+                      min="0" 
+                      step="10"
+                      class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none bg-white font-extrabold text-blue-900 focus:border-blue-500" 
+                    />
+                  </div>
+                </div>
+
+                <!-- Prescription Power Grid -->
+                <div class="space-y-4 pt-1">
+                  <!-- Right Eye (OD / RE) -->
+                  <div id="container-rx-od" class="p-3 bg-slate-50 rounded-xl border-2 border-blue-200 transition-all">
+                    <div class="flex justify-between items-center mb-2">
+                      <div class="flex items-center gap-2">
+                        <h3 class="text-xs font-bold text-blue-700 uppercase tracking-wider">Right Eye (RE / OD)</h3>
+                        <span id="badge-od-status" class="text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">Active</span>
+                      </div>
+                      <span class="text-[10px] font-semibold text-slate-500">Oculus Dexter (RE)</span>
+                    </div>
+                    <div class="grid grid-cols-5 gap-2">
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">SPH</label>
+                        <input type="text" id="rx-od-sph" placeholder="-2.25" class="w-full p-1.5 text-xs border border-slate-300 rounded text-center bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">CYL</label>
+                        <input type="text" id="rx-od-cyl" placeholder="-0.75" class="w-full p-1.5 text-xs border border-slate-300 rounded text-center bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">AXIS</label>
+                        <input type="text" id="rx-od-axis" placeholder="180" class="w-full p-1.5 text-xs border border-slate-300 rounded text-center bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">ADD</label>
+                        <input type="text" id="rx-od-add" placeholder="+2.00" class="w-full p-1.5 text-xs border border-slate-300 rounded text-center bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">VA</label>
+                        <input type="text" id="rx-od-va" placeholder="6/6" class="w-full p-1.5 text-xs border border-slate-300 rounded text-center bg-white font-semibold" />
+                      </div>
+                    </div>
+                    <p id="hint-od-disabled" class="hidden text-[10px] text-amber-700 mt-1 font-semibold italic">⚠️ Left Eye (LE) only selected. Right Eye (RE) parameters will be omitted from this lens item.</p>
+                  </div>
+
+                  <!-- Left Eye (OS / LE) -->
+                  <div id="container-rx-os" class="p-3 bg-slate-50 rounded-xl border-2 border-blue-200 transition-all">
+                    <div class="flex justify-between items-center mb-2">
+                      <div class="flex items-center gap-2">
+                        <h3 class="text-xs font-bold text-blue-700 uppercase tracking-wider">Left Eye (LE / OS)</h3>
+                        <span id="badge-os-status" class="text-[9.5px] font-bold px-1.5 py-0.5 rounded bg-blue-100 text-blue-800">Active</span>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <button type="button" id="btn-copy-od-to-os" class="text-[10px] text-blue-600 hover:text-blue-800 font-bold bg-white px-2 py-0.5 rounded border border-blue-200 cursor-pointer">
+                          Copy RE &rarr; LE
+                        </button>
+                        <span class="text-[10px] font-semibold text-slate-500">Oculus Sinister (LE)</span>
+                      </div>
+                    </div>
+                    <div class="grid grid-cols-5 gap-2">
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">SPH</label>
+                        <input type="text" id="rx-os-sph" placeholder="-2.50" class="w-full p-1.5 text-xs border border-slate-300 rounded text-center bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">CYL</label>
+                        <input type="text" id="rx-os-cyl" placeholder="-0.50" class="w-full p-1.5 text-xs border border-slate-300 rounded text-center bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">AXIS</label>
+                        <input type="text" id="rx-os-axis" placeholder="175" class="w-full p-1.5 text-xs border border-slate-300 rounded text-center bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">ADD</label>
+                        <input type="text" id="rx-os-add" placeholder="+2.00" class="w-full p-1.5 text-xs border border-slate-300 rounded text-center bg-white font-semibold" />
+                      </div>
+                      <div>
+                        <label class="block text-[10px] font-bold text-slate-600 text-center mb-0.5">VA</label>
+                        <input type="text" id="rx-os-va" placeholder="6/6" class="w-full p-1.5 text-xs border border-slate-300 rounded text-center bg-white font-semibold" />
+                      </div>
+                    </div>
+                    <p id="hint-os-disabled" class="hidden text-[10px] text-amber-700 mt-1 font-semibold italic">⚠️ Right Eye (RE) only selected. Left Eye (LE) parameters will be omitted from this lens item.</p>
+                  </div>
+
+                  <!-- PD & Notes & Quick Helper Buttons -->
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-700 mb-1">Pupillary Distance (PD mm)</label>
+                      <input type="text" id="rx-pd" placeholder="63 mm" class="w-full p-2 text-xs border border-slate-300 rounded-lg bg-white" />
+                    </div>
+                    <div>
+                      <label class="block text-[11px] font-bold text-slate-700 mb-1">Prescription Notes / Coating Specs</label>
+                      <input type="text" id="rx-notes" placeholder="e.g. Blue light filter, Anti-glare, Single Eye Replacement" class="w-full p-2 text-xs border border-slate-300 rounded-lg bg-white" />
+                    </div>
+                  </div>
+
+                  <!-- Quick Presets -->
+                  <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-slate-100">
+                    <div class="flex flex-wrap items-center gap-1.5">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase">Quick Add:</span>
+                      <button type="button" class="btn-rx-preset text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded cursor-pointer" data-add="+1.00">+1.00 Add</button>
+                      <button type="button" class="btn-rx-preset text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded cursor-pointer" data-add="+1.50">+1.50 Add</button>
+                      <button type="button" class="btn-rx-preset text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded cursor-pointer" data-add="+2.00">+2.00 Add</button>
+                      <button type="button" class="btn-rx-preset text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold px-2 py-1 rounded cursor-pointer" data-add="+2.50">+2.50 Add</button>
+                      <button type="button" id="btn-clear-rx" class="text-[10px] text-rose-600 hover:underline font-semibold ml-2 cursor-pointer">Clear Rx</button>
+                    </div>
+
+                    <button 
+                      type="button" 
+                      id="btn-add-custom-lens" 
+                      class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs rounded-xl shadow-xs transition-colors flex items-center gap-1.5 cursor-pointer ml-auto"
+                    >
+                      <span id="btn-add-lens-label">+ Add Lens & Prescription to Cart</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Column: Billing Summary, Payment & Action Controls (5 Cols) -->
+            <div class="lg:col-span-5 space-y-6">
+              <!-- 4. Payment & Invoice Terminal -->
+              <div class="bg-white p-5 rounded-xl border border-[#e5e7eb] shadow-2xs space-y-5 sticky top-20">
+                <div class="flex items-center justify-between border-b border-[#e5e7eb] pb-3">
+                  <h2 class="text-xs font-bold text-[#111827] uppercase tracking-wider">4. Payment & Invoice Actions</h2>
+                  <span id="pos-settlement-status" class="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300">Full Payment (100%)</span>
+                </div>
+
+                <!-- Tax Billing Mode: With Tax vs Without Tax -->
+                <div class="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                  <div class="flex items-center justify-between">
+                    <label class="block text-xs font-bold text-slate-800">Tax Application</label>
+                    <span id="tax-mode-badge" class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-100 text-blue-800 border border-blue-200">With Tax (GST)</span>
+                  </div>
+                  
+                  <div class="grid grid-cols-2 gap-2">
+                    <label id="label-tax-with" class="flex items-center justify-center gap-1.5 p-2 rounded-lg border-2 border-blue-600 bg-blue-50/80 text-xs font-bold text-blue-900 cursor-pointer transition-all">
+                      <input type="radio" name="billing-tax-mode" value="with_tax" checked class="text-blue-600 focus:ring-blue-500" />
+                      <span>With Tax (GST)</span>
+                    </label>
+                    <label id="label-tax-without" class="flex items-center justify-center gap-1.5 p-2 rounded-lg border-2 border-slate-200 bg-white text-xs font-bold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">
+                      <input type="radio" name="billing-tax-mode" value="without_tax" class="text-blue-600 focus:ring-blue-500" />
+                      <span>Without Tax (0%)</span>
+                    </label>
+                  </div>
+
+                  <!-- Tax Rate Adjuster when With Tax is active -->
+                  <div id="tax-rate-custom-wrapper" class="flex items-center justify-between gap-2 pt-1 border-t border-slate-200 text-xs">
+                    <span class="text-[11px] font-semibold text-slate-600">Tax / GST Rate:</span>
+                    <div class="flex items-center gap-1.5">
+                      <input 
+                        type="number" 
+                        id="input-pos-tax-rate" 
+                        min="0" 
+                        max="100" 
+                        step="0.5" 
+                        value="18" 
+                        class="w-16 px-2 py-1 text-center text-xs font-bold border border-slate-300 rounded-md bg-white outline-none focus:ring-1 focus:ring-blue-500" 
+                      />
+                      <span class="text-xs font-bold text-slate-500">%</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dedicated Discount & Concession Section -->
+                <div class="p-3.5 bg-rose-50/60 rounded-xl border border-rose-200 space-y-2.5">
+                  <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-1.5">
+                      <span class="w-5 h-5 rounded-md bg-rose-600 text-white flex items-center justify-center text-[10px] font-black shadow-2xs">%</span>
+                      <label class="block text-xs font-bold text-slate-900">Discount / Concession</label>
+                    </div>
+                    <span id="badge-discount-applied" class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">No Discount</span>
+                  </div>
+
+                  <!-- Discount Mode Switch: Flat RS vs Percentage % -->
+                  <div class="grid grid-cols-2 gap-2">
+                    <label id="label-disc-fixed" class="flex items-center justify-center gap-1.5 p-1.5 rounded-lg border-2 border-rose-600 bg-white text-xs font-bold text-rose-900 cursor-pointer transition-all shadow-2xs">
+                      <input type="radio" name="pos-discount-mode" value="fixed" checked class="sr-only" />
+                      <span>Flat Amount (RS)</span>
+                    </label>
+                    <label id="label-disc-percent" class="flex items-center justify-center gap-1.5 p-1.5 rounded-lg border-2 border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 cursor-pointer transition-all">
+                      <input type="radio" name="pos-discount-mode" value="percentage" class="sr-only" />
+                      <span>Percentage (%)</span>
+                    </label>
+                  </div>
+
+                  <!-- Discount Input & Live Impact -->
+                  <div class="space-y-1.5">
+                    <div class="flex items-center gap-2">
+                      <div class="relative flex-1">
+                        <span id="prefix-disc-type" class="absolute left-2.5 top-2 text-xs font-black text-rose-700">RS</span>
+                        <input 
+                          type="number" 
+                          id="input-pos-discount-value" 
+                          min="0" 
+                          step="1" 
+                          placeholder="0.00" 
+                          class="w-full pl-8 pr-3 py-1.5 text-sm font-black border border-rose-300 rounded-lg outline-none focus:ring-2 focus:ring-rose-500 bg-white text-slate-900"
+                        />
+                      </div>
+                      <div id="box-disc-preview" class="px-2.5 py-1.5 bg-rose-100/80 border border-rose-200 rounded-lg text-right min-w-[95px]">
+                        <span class="text-[9.5px] font-bold text-rose-800 uppercase block">Total Off</span>
+                        <span id="label-disc-saving-amt" class="text-xs font-black text-rose-700">-RS 0.00</span>
+                      </div>
+                    </div>
+
+                    <!-- Quick Preset Chips -->
+                    <div class="flex flex-wrap items-center gap-1 pt-0.5">
+                      <span class="text-[10px] font-bold text-slate-400 uppercase mr-0.5">Quick:</span>
+                      <button type="button" class="btn-pos-disc-preset px-2 py-0.5 bg-white hover:bg-rose-100 border border-rose-200 text-rose-900 font-bold text-[10.5px] rounded cursor-pointer transition-colors" data-type="fixed" data-val="50">RS 50</button>
+                      <button type="button" class="btn-pos-disc-preset px-2 py-0.5 bg-white hover:bg-rose-100 border border-rose-200 text-rose-900 font-bold text-[10.5px] rounded cursor-pointer transition-colors" data-type="fixed" data-val="100">RS 100</button>
+                      <button type="button" class="btn-pos-disc-preset px-2 py-0.5 bg-white hover:bg-rose-100 border border-rose-200 text-rose-900 font-bold text-[10.5px] rounded cursor-pointer transition-colors" data-type="fixed" data-val="200">RS 200</button>
+                      <button type="button" class="btn-pos-disc-preset px-2 py-0.5 bg-white hover:bg-rose-100 border border-rose-200 text-rose-900 font-bold text-[10.5px] rounded cursor-pointer transition-colors" data-type="fixed" data-val="500">RS 500</button>
+                      <button type="button" class="btn-pos-disc-preset px-2 py-0.5 bg-white hover:bg-rose-100 border border-rose-200 text-rose-900 font-bold text-[10.5px] rounded cursor-pointer transition-colors" data-type="percentage" data-val="5">5%</button>
+                      <button type="button" class="btn-pos-disc-preset px-2 py-0.5 bg-white hover:bg-rose-100 border border-rose-200 text-rose-900 font-bold text-[10.5px] rounded cursor-pointer transition-colors" data-type="percentage" data-val="10">10%</button>
+                      <button type="button" class="btn-pos-disc-preset px-2 py-0.5 bg-white hover:bg-rose-100 border border-rose-200 text-rose-900 font-bold text-[10.5px] rounded cursor-pointer transition-colors" data-type="percentage" data-val="15">15%</button>
+                      <button type="button" class="btn-pos-disc-preset px-2 py-0.5 bg-white hover:bg-rose-100 border border-rose-200 text-rose-900 font-bold text-[10.5px] rounded cursor-pointer transition-colors" data-type="percentage" data-val="20">20%</button>
+                      <button type="button" id="btn-clear-pos-disc" class="px-1.5 py-0.5 text-slate-500 hover:text-rose-700 text-[10.5px] font-bold cursor-pointer underline ml-auto">Clear (0)</button>
+                    </div>
+
+                    <!-- Discount Reason / Note -->
+                    <div class="pt-0.5">
+                      <input 
+                        type="text" 
+                        id="input-pos-disc-reason" 
+                        list="preset-discount-reasons"
+                        placeholder="Discount Reason / Offer (e.g. Festival Offer, Special Concession)" 
+                        class="w-full px-2.5 py-1.5 text-xs border border-slate-200 rounded-lg outline-none bg-white font-medium text-slate-700 placeholder:text-slate-400 focus:border-rose-400"
+                      />
+                      <datalist id="preset-discount-reasons">
+                        <option value="Customer Goodwill / Special Concession"></option>
+                        <option value="Festival / Seasonal Offer"></option>
+                        <option value="Doctor / Optometrist Referral Concession"></option>
+                        <option value="Regular / Loyal Customer Concession"></option>
+                        <option value="Frame + Lens Combo Discount"></option>
+                        <option value="Senior Citizen / Student Discount"></option>
+                        <option value="Clearance / Stock Sale Offer"></option>
+                      </datalist>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Financial Calculation Breakdown -->
+                <div class="space-y-2 text-xs bg-slate-50 p-3.5 rounded-xl border border-[#e5e7eb]">
+                  <div class="flex justify-between text-[#6b7280]">
+                    <span>Items Subtotal:</span>
+                    <span id="calc-subtotal" class="font-semibold text-[#111827]">RS 0.00</span>
+                  </div>
+                  <div class="flex justify-between text-rose-600 hidden" id="row-calc-item-discount">
+                    <span>Item-level Discounts:</span>
+                    <span id="calc-item-discount" class="font-semibold">-RS 0.00</span>
+                  </div>
+                  <div class="flex justify-between text-rose-600 hidden" id="row-calc-bill-discount">
+                    <span id="label-calc-bill-discount">Bill Concession:</span>
+                    <span id="calc-bill-discount" class="font-semibold">-RS 0.00</span>
+                  </div>
+                  <div class="flex justify-between text-rose-600">
+                    <span class="font-semibold">Total Discount:</span>
+                    <span id="calc-discount" class="font-bold text-rose-600">-RS 0.00</span>
+                  </div>
+                  <div class="flex justify-between text-slate-600">
+                    <span>Taxable Net Subtotal:</span>
+                    <span id="calc-taxable-net" class="font-semibold text-slate-800">RS 0.00</span>
+                  </div>
+                  <div class="flex justify-between text-[#6b7280]" id="row-calc-tax">
+                    <span id="label-calc-tax-desc">Estimated Tax (GST 18%):</span>
+                    <span id="calc-tax" class="font-semibold text-[#111827]">RS 0.00</span>
+                  </div>
+                  <div class="flex justify-between text-base font-extrabold text-[#111827] pt-2 border-t border-[#e5e7eb]">
+                    <span>Grand Total:</span>
+                    <span id="calc-grand-total" class="text-blue-700">RS 0.00</span>
+                  </div>
+                </div>
+
+                <!-- Amount Received / Advance Payment Input -->
+                <div class="p-3.5 rounded-xl border border-slate-200 bg-white space-y-3">
+                  <div class="flex justify-between items-center">
+                    <label class="block text-xs font-bold text-slate-900">
+                      Amount Paid / Advance Received (RS)
+                    </label>
+                    <span class="text-[10px] text-slate-500">Enter custom amount</span>
+                  </div>
+
+                  <div class="relative">
+                    <span class="absolute left-3 top-2.5 text-xs font-bold text-slate-400">RS</span>
+                    <input 
+                      type="number" 
+                      id="input-advance-amount" 
+                      min="0" 
+                      step="0.01" 
+                      placeholder="0.00" 
+                      class="w-full pl-9 pr-3.5 py-2.5 text-base font-black border border-slate-300 rounded-lg outline-none focus:ring-2 focus:ring-blue-500 bg-slate-50/50 focus:bg-white text-slate-900"
+                    />
+                  </div>
+
+                  <!-- Quick Amount Presets -->
+                  <div class="grid grid-cols-3 gap-1.5 pt-0.5">
+                    <button type="button" id="btn-set-full-advance" class="py-1.5 px-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-[11px] rounded-md border border-emerald-200 transition-colors">
+                      Full Paid (100%)
+                    </button>
+                    <button type="button" id="btn-set-half-advance" class="py-1.5 px-2 bg-blue-50 hover:bg-blue-100 text-blue-800 font-bold text-[11px] rounded-md border border-blue-200 transition-colors">
+                      50% Advance
+                    </button>
+                    <button type="button" id="btn-set-zero-advance" class="py-1.5 px-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[11px] rounded-md border border-slate-200 transition-colors">
+                      RS 0 (Unpaid)
+                    </button>
+                  </div>
+
+                  <!-- Live Settlement Status Card -->
+                  <div id="box-settlement-card" class="p-3 bg-emerald-50/80 rounded-lg border border-emerald-200 space-y-1 text-xs">
+                    <div class="flex justify-between items-center">
+                      <span class="text-slate-600 font-medium">Balance Due:</span>
+                      <span id="calc-pending-amount" class="text-sm font-black text-emerald-800">RS 0.00</span>
+                    </div>
+                    <p id="label-settlement-note" class="text-[10.5px] font-semibold text-emerald-700">
+                      ✓ Full payment received. Direct Invoice is ready to be generated.
+                    </p>
+                  </div>
+
+                  <p id="advance-val-error" class="text-[11px] font-bold text-rose-600 hidden">
+                    Amount paid cannot exceed the grand total.
+                  </p>
+                </div>
+
+                <!-- Payment Method Selection -->
+                <div>
+                  <label class="block text-xs font-semibold text-[#111827] mb-1.5">Payment Method</label>
+                  <div class="grid grid-cols-3 gap-2">
+                    <label class="flex items-center justify-center p-2 rounded-lg border border-[#e5e7eb] text-xs font-semibold text-[#111827] bg-white hover:bg-gray-50 cursor-pointer space-x-1.5">
+                      <input type="radio" name="pay-method" value="Cash" checked class="text-[#1f6feb]" />
+                      <span>Cash</span>
+                    </label>
+                    <label class="flex items-center justify-center p-2 rounded-lg border border-[#e5e7eb] text-xs font-semibold text-[#111827] bg-white hover:bg-gray-50 cursor-pointer space-x-1.5">
+                      <input type="radio" name="pay-method" value="UPI" class="text-[#1f6feb]" />
+                      <span>UPI</span>
+                    </label>
+                    <label class="flex items-center justify-center p-2 rounded-lg border border-[#e5e7eb] text-xs font-semibold text-[#111827] bg-white hover:bg-gray-50 cursor-pointer space-x-1.5">
+                      <input type="radio" name="pay-method" value="Card" class="text-[#1f6feb]" />
+                      <span>Card</span>
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Sale Notes -->
+                <div>
+                  <label class="block text-xs font-semibold text-[#6b7280] mb-1">Fitting / Order Notes</label>
+                  <textarea id="sale-notes" rows="2" placeholder="Lab fitting notes, frame adjustments, pickup instructions..." class="w-full p-2.5 text-xs border border-[#e5e7eb] rounded-lg outline-none bg-gray-50 focus:bg-white"></textarea>
+                </div>
+
+                <!-- Action Buttons: Direct Invoice vs Advance Receipt -->
+                <div class="space-y-2.5 pt-1">
+                  <!-- Direct Invoice Button (Enforces Full Payment) -->
+                  <div>
+                    <button 
+                      type="button" 
+                      id="btn-save-as-sale" 
+                      class="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      <span id="btn-sale-text">Generate Direct Invoice (Full Payment)</span>
+                    </button>
+                    <p id="direct-invoice-lock-hint" class="text-[10px] font-bold text-amber-700 hidden text-center mt-1">
+                      ⚠️ Direct Invoice requires 100% full payment (Due: RS <span id="hint-pending-due">0.00</span>). Settle full amount or generate Advance Receipt.
+                    </p>
+                  </div>
+
+                  <!-- Save as Pending & Generate Advance Receipt -->
+                  <button 
+                    type="button" 
+                    id="btn-save-as-pending" 
+                    class="w-full py-3 px-4 bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs sm:text-sm rounded-xl shadow-2xs transition-all flex items-center justify-center gap-2 cursor-pointer"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span>Generate Advance Receipt (Save as Pending)</span>
+                  </button>
+
+                  <!-- Secondary Options -->
+                  <div class="grid grid-cols-2 gap-2 pt-1">
+                    <button type="button" id="btn-gen-advance-receipt" class="py-2.5 bg-amber-50 hover:bg-amber-100 text-amber-900 font-bold text-xs rounded-lg border border-amber-200 transition-colors flex items-center justify-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12h20"/><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6"/></svg>
+                      <span>Preview Advance Receipt</span>
+                    </button>
+                    <button type="button" id="btn-quick-full-invoice" class="py-2.5 bg-blue-50 hover:bg-blue-100 text-blue-900 font-bold text-xs rounded-lg border border-blue-200 transition-colors flex items-center justify-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                      <span>Pay Full & Invoice</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Advance Receipt Modal -->
+    <div id="modal-advance-receipt" class="fixed inset-0 bg-slate-900/80 backdrop-blur-xs z-50 flex items-center justify-center p-3 sm:p-4 hidden no-print overflow-y-auto">
+      <div class="bg-white rounded-2xl max-w-xl w-full p-4 sm:p-6 space-y-4 border border-slate-200 shadow-2xl my-auto">
+        
+        <!-- Header with Success Alert & Close -->
+        <div class="flex justify-between items-start gap-3 border-b border-slate-100 pb-3">
+          <div class="flex items-center gap-2.5">
+            <div class="w-9 h-9 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold shrink-0 border border-emerald-200">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <div>
+              <h3 class="font-extrabold text-slate-900 text-base">Advance Receipt Generated!</h3>
+              <p class="text-[11px] text-slate-500 font-medium">Order booked & advance receipt generated successfully</p>
+            </div>
+          </div>
+          <button id="btn-close-receipt-modal" class="text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition-colors text-base" title="Close modal">✕</button>
+        </div>
+
+        <!-- Prominent Quick Action Bar -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5 bg-slate-50 p-3 rounded-xl border border-slate-200">
+          <button 
+            type="button" 
+            id="btn-download-receipt-pdf" 
+            class="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-2xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Download PDF Receipt</span>
+          </button>
+
+          <button 
+            type="button" 
+            id="btn-modal-new-pos" 
+            class="w-full py-2.5 px-4 bg-blue-600 hover:bg-blue-700 active:scale-[0.98] text-white font-bold text-xs rounded-xl shadow-2xs flex items-center justify-center gap-2 transition-all cursor-pointer"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>
+            <span>+ Start New POS Sale</span>
+          </button>
+        </div>
+
+        <!-- Printable / Preview Area -->
+        <div id="receipt-modal-content" class="printable-area bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-3 max-h-[50vh] overflow-y-auto">
+          <!-- Dynamically populated receipt content -->
+        </div>
+
+        <!-- Secondary Print & Navigation Actions -->
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-200">
+          <div class="flex items-center gap-2">
+            <a href="orders.html" class="text-xs font-bold text-slate-600 hover:text-blue-700 hover:underline flex items-center gap-1">
+              <span>View in Orders &rarr;</span>
+            </a>
+          </div>
+
+          <div class="flex items-center gap-2 flex-wrap sm:flex-nowrap">
+            <button id="btn-print-receipt-thermal" class="px-3 py-2 bg-slate-100 text-slate-800 font-bold text-xs rounded-lg hover:bg-slate-200 border border-slate-300 flex items-center gap-1.5 transition-colors cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <span>Thermal (80mm)</span>
+            </button>
+            
+            <button id="btn-print-receipt" class="px-3.5 py-2 bg-slate-800 text-white font-bold text-xs rounded-lg hover:bg-slate-900 shadow-2xs flex items-center gap-1.5 transition-colors cursor-pointer">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+              <span>Print A4</span>
+            </button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <script type="module" src="/src/pages/sales.ts"></script>
+  </body>
+</html>

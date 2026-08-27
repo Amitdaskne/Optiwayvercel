@@ -1,0 +1,470 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inventory Management - OPTIWAY</title>
+    <link rel="stylesheet" href="/src/index.css" />
+  </head>
+  <body class="bg-slate-50 min-h-screen flex flex-col antialiased">
+    <div class="flex flex-1 min-h-screen">
+      <!-- Sidebar -->
+      <div id="app-sidebar"></div>
+
+      <!-- Main Content -->
+      <div class="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <!-- Header -->
+        <div id="app-header"></div>
+
+        <main class="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8 space-y-6">
+          <div class="flex flex-wrap items-center justify-between gap-4 bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+            <div>
+              <h2 class="text-base font-bold text-slate-900">Inventory Management & Audit Trail</h2>
+              <p class="text-xs text-slate-500">Monitor stock levels, perform manual adjustments, and audit inventory movements</p>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              <button id="btn-scan-purchase-bill" class="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4 text-indigo-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Scan Purchase Bill (PDF/JPG)
+              </button>
+              <button id="btn-open-excel-import" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Import via Excel
+              </button>
+              <button id="btn-export-excel" class="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer" title="Export current catalog to Excel spreadsheet">
+                <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                </svg>
+                Export Excel
+              </button>
+              <button id="btn-open-stk-gen-modal" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h10M7 11h10M7 15h10"></path>
+                </svg>
+                Sticker Generator (79x10mm)
+              </button>
+              <button id="btn-open-bulk-barcodes" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg border border-slate-200 shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer">
+                <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Bulk PDF
+              </button>
+              <button id="btn-open-adj-modal" class="px-4 py-2 bg-slate-900 hover:bg-black text-white font-bold text-xs rounded-lg shadow-2xs transition-colors cursor-pointer">
+                + Record Stock Adjustment
+              </button>
+            </div>
+          </div>
+
+          <!-- Navigation Tabs for Inventory Modules -->
+          <div class="flex flex-wrap items-center gap-2 border-b border-slate-200 pb-2">
+            <button id="tab-btn-instock" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer bg-slate-900 text-white shadow-xs">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m7.5 4.27 9 5.15"/><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></svg>
+              <span>Current Stock Catalog</span>
+            </button>
+
+            <button id="tab-btn-sold" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>
+              <span>Sold Inventory Items</span>
+              <span id="badge-sold-count" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-blue-100 text-blue-700">0</span>
+            </button>
+
+            <button id="tab-btn-pending" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">
+              <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>Pending Stock Intake</span>
+              <span id="badge-pending-count" class="px-2 py-0.5 rounded-full text-[10px] font-extrabold bg-amber-100 text-amber-800">0</span>
+            </button>
+
+            <button id="tab-btn-audit" class="tab-btn px-4 py-2.5 rounded-xl font-bold text-xs flex items-center gap-2 transition-all cursor-pointer bg-white text-slate-600 hover:bg-slate-100 border border-slate-200">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+              <span>Movement & Audit Logs</span>
+            </button>
+          </div>
+
+          <!-- SECTION 1: IN-STOCK CATALOG -->
+          <div id="section-instock" class="space-y-6">
+            <!-- Stock Status Cards Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <p class="text-xs font-semibold text-slate-500">Total Catalog Items</p>
+                <h3 id="inv-stat-total" class="text-xl font-black text-slate-900 mt-1">0</h3>
+              </div>
+              <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <p class="text-xs font-semibold text-slate-500">Low-Stock Items Alert</p>
+                <h3 id="inv-stat-low" class="text-xl font-black text-amber-600 mt-1">0</h3>
+              </div>
+              <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <p class="text-xs font-semibold text-slate-500">Out-of-Stock Items</p>
+                <h3 id="inv-stat-out" class="text-xl font-black text-rose-600 mt-1">0</h3>
+              </div>
+            </div>
+
+            <!-- Stock Level Table -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden space-y-3 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <h3 class="text-sm font-bold text-slate-900">Current Inventory Status</h3>
+                <div class="flex items-center gap-2">
+                  <input type="text" id="inv-search-instock" placeholder="Search catalog by name, Model Number, brand..." class="px-3 py-1.5 text-xs border border-slate-300 rounded-lg outline-none w-64" />
+                </div>
+              </div>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] border-b border-slate-200">
+                      <th class="p-3">Product Name</th>
+                      <th class="p-3">Model Number</th>
+                      <th class="p-3">Category</th>
+                      <th class="p-3">Current Stock</th>
+                      <th class="p-3">Min Alert Level</th>
+                      <th class="p-3">Inventory Status</th>
+                      <th class="p-3 text-right">Quick Adjust</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbl-inventory-body" class="divide-y divide-slate-100 text-slate-700">
+                    <tr><td colspan="7" class="p-6 text-center text-slate-400">Loading inventory levels...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2: SOLD INVENTORY ITEMS -->
+          <div id="section-sold" class="space-y-6 hidden">
+            <!-- Sold Summary Cards -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+              <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+                <span class="text-[11px] font-bold text-slate-400 block uppercase tracking-wider">Total Units Sold</span>
+                <h3 id="sold-stat-total-units" class="text-lg font-black text-slate-900 mt-1">0 Units</h3>
+                <p id="sold-stat-total-rev" class="text-xs font-bold text-emerald-700 mt-0.5">RS 0.00</p>
+              </div>
+
+              <div class="bg-white p-4 rounded-xl border border-blue-100 shadow-2xs bg-blue-50/20">
+                <span class="text-[11px] font-bold text-blue-500 block uppercase tracking-wider">👓 Frames Sold</span>
+                <h3 id="sold-stat-frames-units" class="text-lg font-black text-blue-900 mt-1">0</h3>
+                <p id="sold-stat-frames-rev" class="text-xs font-bold text-blue-600 mt-0.5">RS 0.00</p>
+              </div>
+
+              <div class="bg-white p-4 rounded-xl border border-purple-100 shadow-2xs bg-purple-50/20">
+                <span class="text-[11px] font-bold text-purple-500 block uppercase tracking-wider">🕶️ Sunglasses Sold</span>
+                <h3 id="sold-stat-sunglasses-units" class="text-lg font-black text-purple-900 mt-1">0</h3>
+                <p id="sold-stat-sunglasses-rev" class="text-xs font-bold text-purple-600 mt-0.5">RS 0.00</p>
+              </div>
+
+              <div class="bg-white p-4 rounded-xl border border-emerald-100 shadow-2xs bg-emerald-50/20">
+                <span class="text-[11px] font-bold text-emerald-500 block uppercase tracking-wider">🔍 Lenses Sold</span>
+                <h3 id="sold-stat-lenses-units" class="text-lg font-black text-emerald-900 mt-1">0</h3>
+                <p id="sold-stat-lenses-rev" class="text-xs font-bold text-emerald-600 mt-0.5">RS 0.00</p>
+              </div>
+
+              <div class="bg-white p-4 rounded-xl border border-amber-100 shadow-2xs bg-amber-50/20">
+                <span class="text-[11px] font-bold text-amber-500 block uppercase tracking-wider">📦 Other / Contact</span>
+                <h3 id="sold-stat-other-units" class="text-lg font-black text-amber-900 mt-1">0</h3>
+                <p id="sold-stat-other-rev" class="text-xs font-bold text-amber-600 mt-0.5">RS 0.00</p>
+              </div>
+            </div>
+
+            <!-- Comprehensive Filter & Search Controls -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-2xs space-y-4">
+              <!-- Top Row: Category Filter Chips & Bill Search -->
+              <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <!-- Category Filters (Frame, Sunglass, Lens, All) -->
+                <div>
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Category Filter</label>
+                  <div class="flex flex-wrap items-center gap-1.5">
+                    <button class="btn-sold-cat-filter px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer bg-slate-900 text-white" data-category="all">
+                      All Items
+                    </button>
+                    <button class="btn-sold-cat-filter px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700" data-category="frame">
+                      👓 Frame
+                    </button>
+                    <button class="btn-sold-cat-filter px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700" data-category="sunglass">
+                      🕶️ Sunglass
+                    </button>
+                    <button class="btn-sold-cat-filter px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700" data-category="lens">
+                      🔍 Lens
+                    </button>
+                    <button class="btn-sold-cat-filter px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700" data-category="contact">
+                      👁️ Contact Lens
+                    </button>
+                    <button class="btn-sold-cat-filter px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer bg-slate-100 hover:bg-slate-200 text-slate-700" data-category="accessories">
+                      🧴 Accessories / Other
+                    </button>
+                  </div>
+                </div>
+
+                <!-- Associated Bill No. / Item Search -->
+                <div class="w-full lg:w-80">
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-1.5">Associated Bill No. / Item / Customer</label>
+                  <div class="relative">
+                    <input type="text" id="inv-sold-search-bill" placeholder="Search Bill No (e.g. OPT-SL-1001), item, phone..." class="w-full pl-8 pr-8 py-2 text-xs border border-slate-300 rounded-xl outline-none font-semibold focus:border-blue-500 focus:ring-1 focus:ring-blue-500 bg-white" />
+                    <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <button id="btn-sold-search-clear" class="absolute right-2.5 top-2 text-slate-400 hover:text-slate-600 hidden text-xs font-bold">✕</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Bottom Row: Price Range & Custom Date Filters -->
+              <div class="pt-3 border-t border-slate-100 grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
+                <!-- Price Range Filter -->
+                <div class="md:col-span-4 space-y-1">
+                  <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Price Range (RS)</label>
+                  <div class="flex items-center gap-2">
+                    <input type="number" id="inv-sold-price-min" min="0" placeholder="Min RS" class="w-1/2 px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg outline-none font-mono" />
+                    <span class="text-slate-400 text-xs font-bold">-</span>
+                    <input type="number" id="inv-sold-price-max" min="0" placeholder="Max RS" class="w-1/2 px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg outline-none font-mono" />
+                  </div>
+                </div>
+
+                <!-- Custom Date Presets & Inputs -->
+                <div class="md:col-span-5 space-y-1">
+                  <div class="flex items-center justify-between">
+                    <label class="block text-[11px] font-bold uppercase tracking-wider text-slate-400">Date Range Filter</label>
+                    <div class="flex items-center gap-1 text-[10px]">
+                      <button class="btn-sold-date-preset font-bold text-blue-600 hover:underline px-1" data-preset="all">All</button>
+                      <span class="text-slate-300">•</span>
+                      <button class="btn-sold-date-preset font-bold text-slate-600 hover:underline px-1" data-preset="today">Today</button>
+                      <span class="text-slate-300">•</span>
+                      <button class="btn-sold-date-preset font-bold text-slate-600 hover:underline px-1" data-preset="week">7 Days</button>
+                      <span class="text-slate-300">•</span>
+                      <button class="btn-sold-date-preset font-bold text-slate-600 hover:underline px-1" data-preset="month">This Month</button>
+                    </div>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <input type="date" id="inv-sold-date-from" class="w-1/2 px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg outline-none bg-white font-mono" title="From Date" />
+                    <span class="text-slate-400 text-xs font-bold">to</span>
+                    <input type="date" id="inv-sold-date-to" class="w-1/2 px-2.5 py-1.5 text-xs border border-slate-300 rounded-lg outline-none bg-white font-mono" title="To Date" />
+                  </div>
+                </div>
+
+                <!-- Sort & Filter Action Controls -->
+                <div class="md:col-span-3 flex items-center justify-end gap-2">
+                  <select id="inv-sold-sort" class="px-2.5 py-2 text-xs border border-slate-300 rounded-lg outline-none bg-white font-semibold">
+                    <option value="date-desc">Date (Newest First)</option>
+                    <option value="date-asc">Date (Oldest First)</option>
+                    <option value="price-desc">Price (High to Low)</option>
+                    <option value="price-asc">Price (Low to High)</option>
+                    <option value="qty-desc">Quantity (High to Low)</option>
+                  </select>
+
+                  <button id="btn-sold-reset-all" class="px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors cursor-pointer border border-slate-200 whitespace-nowrap" title="Reset all search filters">
+                    Reset
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Sold Items Table Card -->
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-2xs overflow-hidden space-y-3 p-4">
+              <div class="flex flex-wrap items-center justify-between gap-3 pb-2 border-b border-slate-100">
+                <div class="flex items-center gap-2">
+                  <h3 class="text-sm font-bold text-slate-900">Sold Inventory Ledger</h3>
+                  <span id="sold-records-count-badge" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold bg-slate-100 text-slate-700">0 Records</span>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <button id="btn-sold-export-excel" class="px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-300 text-emerald-800 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-3.5 h-3.5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    <span>Export Excel (.xlsx)</span>
+                  </button>
+                  <button id="btn-sold-print-report" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 border border-slate-200 text-slate-700 font-bold text-xs rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                    </svg>
+                    <span>Print Report</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Data Table -->
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] border-b border-slate-200">
+                      <th class="p-3">Date</th>
+                      <th class="p-3">Associated Bill No.</th>
+                      <th class="p-3">Product Name & Details</th>
+                      <th class="p-3">Category</th>
+                      <th class="p-3">Customer</th>
+                      <th class="p-3 text-right">Unit Price</th>
+                      <th class="p-3 text-center">Qty</th>
+                      <th class="p-3 text-right">Discount</th>
+                      <th class="p-3 text-right">Total Price</th>
+                      <th class="p-3 text-center">Status</th>
+                      <th class="p-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbl-sold-inventory-body" class="divide-y divide-slate-100 text-slate-700">
+                    <tr><td colspan="11" class="p-6 text-center text-slate-400">Loading sold inventory data...</td></tr>
+                  </tbody>
+                  <tfoot>
+                    <tr id="tbl-sold-summary-row" class="bg-slate-50/90 font-extrabold text-slate-900 border-t-2 border-slate-300">
+                      <td colspan="5" class="p-3 text-right uppercase text-[11px] tracking-wider text-slate-600">Total Filtered Sold Items:</td>
+                      <td class="p-3 text-right font-mono" id="sold-foot-unit-avg">-</td>
+                      <td class="p-3 text-center font-mono" id="sold-foot-total-qty">0</td>
+                      <td class="p-3 text-right font-mono text-rose-600" id="sold-foot-total-disc">RS 0.00</td>
+                      <td class="p-3 text-right font-mono text-emerald-700 text-sm" id="sold-foot-grand-total">RS 0.00</td>
+                      <td colspan="2" class="p-3 text-right text-slate-500 font-normal">Active Ledger View</td>
+                    </tr>
+                  </tfoot>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3: PENDING STOCK INTAKE QUEUE -->
+          <div id="section-pending" class="space-y-6 hidden">
+            <!-- Pending Info Banner & Batch Actions -->
+            <div class="p-4 bg-amber-50/80 border border-amber-200 rounded-xl flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-amber-950">
+              <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-amber-500 text-white flex items-center justify-center font-bold text-sm shadow-2xs shrink-0">
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                </div>
+                <div>
+                  <h4 class="font-bold text-xs text-amber-900">Pending Stock Staging & Verification</h4>
+                  <p class="text-[11px] text-amber-800">Review and confirm stock from scanned purchase bills or Excel uploads into your active inventory catalog.</p>
+                </div>
+              </div>
+              
+              <div class="flex flex-wrap items-center gap-2">
+                <button id="btn-inv-print-all-pending-stickers" class="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer min-h-[38px]">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                  </svg>
+                  <span>Print 79x10mm Stickers</span>
+                </button>
+                <button id="btn-inv-confirm-all-pending" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-lg shadow-2xs transition-colors flex items-center gap-1.5 cursor-pointer min-h-[38px]">
+                  <svg class="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                  </svg>
+                  <span id="btn-inv-confirm-label">Confirm All to Live Stock</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Filters -->
+            <div class="bg-white p-3.5 sm:p-4 rounded-xl border border-slate-200 shadow-2xs grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+              <div class="sm:col-span-2">
+                <input type="text" id="inv-pending-search" placeholder="Filter pending by Bill No, Supplier Ledger, Name, Model Number..." class="w-full px-3.5 py-2 text-xs border border-slate-300 rounded-lg outline-none bg-slate-50 focus:bg-white transition-colors min-h-[40px]" />
+              </div>
+              <div>
+                <select id="inv-pending-bill-filter" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none bg-white font-medium min-h-[40px]">
+                  <option value="All">All Bill Numbers</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- Pending Products Table -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden">
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-amber-50/60 text-slate-700 font-bold uppercase text-[11px] border-b border-amber-200 whitespace-nowrap">
+                      <th class="p-3.5 w-10 text-center">
+                        <input type="checkbox" id="inv-pending-chk-master" class="w-4 h-4 rounded border-amber-300 cursor-pointer" title="Select / Deselect All" />
+                      </th>
+                      <th class="p-3.5">Bill Number</th>
+                      <th class="p-3.5">Supplier Ledger</th>
+                      <th class="p-3.5">Product / Model</th>
+                      <th class="p-3.5">Category</th>
+                      <th class="p-3.5">Brand & Specs</th>
+                      <th class="p-3.5 text-right">Selling Price</th>
+                      <th class="p-3.5 text-right">Cost Price</th>
+                      <th class="p-3.5 text-right">Pending Qty</th>
+                      <th class="p-3.5 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbl-inv-pending-body" class="divide-y divide-slate-100 text-slate-700">
+                    <tr><td colspan="10" class="p-8 text-center text-slate-400">Loading pending stock queue...</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 4: INVENTORY AUDIT TRAIL LOG -->
+          <div id="section-audit" class="space-y-6 hidden">
+            <!-- Inventory Audit Trail Log Table -->
+            <div class="bg-white rounded-xl border border-slate-200 shadow-2xs overflow-hidden p-4 space-y-3">
+              <h3 class="text-sm font-bold text-slate-900">Inventory Movement Logs & Audit Trail</h3>
+              <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse text-xs">
+                  <thead>
+                    <tr class="bg-slate-50 text-slate-600 font-bold uppercase text-[11px] border-b border-slate-200">
+                      <th class="p-3">Date & Time</th>
+                      <th class="p-3">Product</th>
+                      <th class="p-3">Type</th>
+                      <th class="p-3">Qty Change</th>
+                      <th class="p-3">Stock Before / After</th>
+                      <th class="p-3">Reason / Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody id="tbl-inv-logs-body" class="divide-y divide-slate-100 text-slate-700">
+                    <tr><td colspan="6" class="p-6 text-center text-slate-400">No inventory adjustment logs found.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
+    </div>
+
+    <!-- Stock Adjustment Modal -->
+    <div id="modal-adj" class="fixed inset-0 bg-slate-900/80 z-50 flex items-center justify-center p-4 hidden">
+      <div class="bg-white rounded-2xl max-w-md w-full p-6 space-y-4 border border-slate-200 shadow-2xl">
+        <div class="flex justify-between items-center border-b border-slate-100 pb-3">
+          <h3 class="font-bold text-slate-900 text-sm">Record Stock Adjustment</h3>
+          <button id="btn-close-adj-modal" class="text-slate-400 hover:text-slate-700">✕</button>
+        </div>
+
+        <form id="form-adj" class="space-y-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Select Product *</label>
+            <select id="adj-product-id" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none bg-white font-semibold">
+              <!-- Options populated dynamically -->
+            </select>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Adjustment Type *</label>
+              <select id="adj-type" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none bg-white font-semibold">
+                <option value="Stock-In">Stock-In (+)</option>
+                <option value="Stock-Out">Stock-Out (-)</option>
+                <option value="Damage">Damage / Loss (-)</option>
+                <option value="Correction">Correction (=)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-1">Quantity Amount *</label>
+              <input type="number" min="1" id="adj-quantity" required placeholder="5" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none" />
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-semibold text-slate-700 mb-1">Reason / Notes</label>
+            <input type="text" id="adj-reason" placeholder="e.g. New shipment received from supplier" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-lg outline-none" />
+          </div>
+
+          <div class="flex justify-end gap-2 pt-3 border-t border-slate-100">
+            <button type="button" id="btn-cancel-adj-modal" class="px-4 py-2 text-xs font-semibold text-slate-600 hover:bg-slate-100 rounded-lg">Cancel</button>
+            <button type="submit" class="px-4 py-2 bg-blue-600 text-white font-bold text-xs rounded-lg hover:bg-blue-700">Apply Adjustment</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script type="module" src="/src/pages/inventory.ts"></script>
+  </body>
+</html>
