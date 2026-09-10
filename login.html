@@ -19,35 +19,75 @@
 
       <!-- Login Form Body -->
       <div class="p-8 space-y-5">
+        <!-- Authorized Owner Banner -->
+        <div class="p-3 bg-amber-50 border border-amber-200 rounded-lg text-amber-900 text-xs flex items-center gap-2.5">
+          <span class="text-base shrink-0">🔒</span>
+          <div>
+            <p class="font-bold">Restricted Owner Access</p>
+            <p class="text-[11px] text-amber-800">Only <strong class="font-mono text-amber-950">amitdaskishanganj@gmail.com</strong> is authorized to sign in.</p>
+          </div>
+        </div>
+
         <div id="login-error-alert" class="hidden p-3.5 rounded-lg bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold"></div>
+        <div id="login-success-alert" class="hidden p-3.5 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-semibold"></div>
+
+        <!-- Google One-Click Sign In -->
+        <button 
+          type="button" 
+          id="btn-google-login"
+          class="w-full py-2.5 px-4 bg-white hover:bg-gray-50 active:bg-gray-100 text-slate-700 font-semibold rounded-lg text-xs transition-all border border-slate-300 shadow-2xs flex items-center justify-center gap-3 cursor-pointer"
+        >
+          <svg class="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.17z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.14-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.99 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+          </svg>
+          <span id="btn-google-text">Sign in with Google</span>
+        </button>
+
+        <div class="relative my-4">
+          <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-[#e5e7eb]"></div></div>
+          <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-[#6b7280] font-semibold">Or Email & Password</span></div>
+        </div>
 
         <form id="login-form" class="space-y-4">
           <div>
             <label class="block text-xs font-semibold text-[#6b7280] uppercase tracking-wider mb-1.5" for="login-email">
-              Email Address
+              Authorized Email
             </label>
             <input 
               type="email" 
               id="login-email" 
               required 
-              placeholder="admin@optiway.com"
-              value="admin@optiway.com"
-              class="w-full px-4 py-2.5 rounded-lg border border-[#e5e7eb] text-[#111827] text-sm focus:ring-2 focus:ring-[#1f6feb] focus:border-[#1f6feb] outline-none transition-all bg-gray-50 focus:bg-white"
+              readonly
+              value="amitdaskishanganj@gmail.com"
+              class="w-full px-4 py-2.5 rounded-lg border border-[#e5e7eb] text-[#111827] text-sm bg-slate-100 font-mono cursor-not-allowed select-all"
             />
+            <p class="text-[10px] text-slate-500 mt-1">Terminal locked to owner's registered Firebase ID.</p>
           </div>
 
           <div>
-            <label class="block text-xs font-semibold text-[#6b7280] uppercase tracking-wider mb-1.5" for="login-password">
-              Password
-            </label>
-            <input 
-              type="password" 
-              id="login-password" 
-              required 
-              placeholder="Enter password"
-              value="optiway123"
-              class="w-full px-4 py-2.5 rounded-lg border border-[#e5e7eb] text-[#111827] text-sm focus:ring-2 focus:ring-[#1f6feb] focus:border-[#1f6feb] outline-none transition-all bg-gray-50 focus:bg-white"
-            />
+            <div class="flex items-center justify-between mb-1.5">
+              <label class="block text-xs font-semibold text-[#6b7280] uppercase tracking-wider" for="login-password">
+                Password
+              </label>
+              <button type="button" id="btn-forgot-password" class="text-[11px] text-[#1f6feb] hover:underline font-semibold cursor-pointer">
+                Forgot password?
+              </button>
+            </div>
+            <div class="relative">
+              <input 
+                type="password" 
+                id="login-password" 
+                required 
+                placeholder="Enter your password"
+                class="w-full px-4 py-2.5 rounded-lg border border-[#e5e7eb] text-[#111827] text-sm focus:ring-2 focus:ring-[#1f6feb] focus:border-[#1f6feb] outline-none transition-all bg-gray-50 focus:bg-white pr-10"
+              />
+              <button type="button" id="btn-toggle-password" class="absolute right-3 top-2.5 text-slate-400 hover:text-slate-600 text-sm cursor-pointer" title="Toggle password visibility">
+                👁️
+              </button>
+            </div>
           </div>
 
           <button 
@@ -55,22 +95,16 @@
             id="btn-login-submit"
             class="w-full py-3 px-4 bg-[#1f6feb] hover:bg-[#1a5fca] active:bg-[#1a5fca] text-white font-semibold rounded-lg text-sm transition-all shadow-2xs flex items-center justify-center gap-2 cursor-pointer"
           >
-            <span>Sign In to Terminal</span>
+            <span id="btn-submit-text">Sign In with Firebase</span>
           </button>
         </form>
 
-        <div class="relative my-4">
-          <div class="absolute inset-0 flex items-center"><div class="w-full border-t border-[#e5e7eb]"></div></div>
-          <div class="relative flex justify-center text-xs uppercase"><span class="bg-white px-2 text-[#6b7280] font-semibold">Or</span></div>
+        <div class="pt-2 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
+          <span>First time setting password?</span>
+          <button type="button" id="btn-create-account-toggle" class="font-bold text-[#1f6feb] hover:underline cursor-pointer">
+            Create / Set Password
+          </button>
         </div>
-
-        <button 
-          id="btn-demo-login" 
-          type="button"
-          class="w-full py-2.5 px-4 bg-gray-50 hover:bg-gray-100 text-[#111827] font-semibold rounded-lg text-xs transition-colors border border-[#e5e7eb] cursor-pointer"
-        >
-          Fast Demo Access (Store Manager)
-        </button>
       </div>
 
       <div class="p-4 bg-gray-50/50 border-t border-[#e5e7eb] text-center">
