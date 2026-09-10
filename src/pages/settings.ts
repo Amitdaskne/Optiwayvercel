@@ -3,6 +3,7 @@ import { renderAppLayout, Toast } from "../components/layout";
 import { dbService, StoreSettings } from "../lib/db";
 import { uploadImageToCloudinary } from "../lib/cloudinary";
 import { THEME_COLOR_PRESETS, DEFAULT_THEME_COLOR, applyThemeColor } from "../lib/theme";
+import { getGeminiApiKey, validateGeminiApiKey } from "../../api/_apiKey";
 
 let activeThemeColor = DEFAULT_THEME_COLOR;
 
@@ -38,6 +39,11 @@ async function loadSettingsData() {
     if (invPrefixInput) invPrefixInput.value = settings.invoicePrefix || "OPT-INV-";
     if (recPrefixInput) recPrefixInput.value = settings.receiptPrefix || "OPT-REC-";
     if (logoUrlInput) logoUrlInput.value = settings.logoUrl || "";
+
+    const geminiInput = document.getElementById("set-gemini-key") as HTMLInputElement;
+    if (geminiInput) {
+      geminiInput.value = getGeminiApiKey();
+    }
 
     activeThemeColor = settings.themeColor || localStorage.getItem("optiway_theme_color") || DEFAULT_THEME_COLOR;
     applyThemeColor(activeThemeColor);
@@ -250,6 +256,80 @@ function setupEvents() {
       await dbService.seedInitialData();
       Toast.show("Database re-seeded with demo records.", "success");
       setTimeout(() => window.location.reload(), 800);
+    }
+  });
+
+  // Gemini AI Key settings handlers
+  const geminiInput = document.getElementById("set-gemini-key") as HTMLInputElement;
+  const toggleKeyBtn = document.getElementById("btn-toggle-key-visibility");
+  const saveKeyBtn = document.getElementById("btn-save-gemini-key");
+  const testKeyBtn = document.getElementById("btn-test-gemini-key");
+  const testKeyText = document.getElementById("btn-test-key-text");
+  const testResult = document.getElementById("gemini-test-result");
+  const statusBadge = document.getElementById("gemini-status-badge");
+
+  toggleKeyBtn?.addEventListener("click", () => {
+    if (geminiInput) {
+      geminiInput.type = geminiInput.type === "password" ? "text" : "password";
+    }
+  });
+
+  saveKeyBtn?.addEventListener("click", () => {
+    const keyVal = geminiInput ? geminiInput.value.trim() : "";
+    localStorage.setItem("OPTIWAY_GEMINI_API_KEY", keyVal);
+    Toast.show("Gemini API key saved in browser storage!", "success");
+    if (statusBadge) {
+      statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><span>Configured</span>`;
+    }
+  });
+
+  testKeyBtn?.addEventListener("click", async () => {
+    const keyVal = (geminiInput ? geminiInput.value.trim() : "") || getGeminiApiKey();
+    const validation = validateGeminiApiKey(keyVal);
+
+    if (!testResult) return;
+    testResult.classList.remove("hidden");
+
+    if (!validation.valid) {
+      testResult.className = "text-[11px] p-2.5 rounded-lg font-medium bg-red-50 text-red-700 border border-red-200";
+      testResult.innerText = validation.error || "Invalid API Key";
+      return;
+    }
+
+    if (testKeyText) testKeyText.innerText = "Connecting...";
+    testResult.className = "text-[11px] p-2.5 rounded-lg font-medium bg-blue-50 text-blue-700 border border-blue-200";
+    testResult.innerText = "Connecting to Google Gemini 2.5 Flash...";
+
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${encodeURIComponent(keyVal)}`;
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: "Respond with the single word: OK" }] }]
+        })
+      });
+
+      if (!res.ok) {
+        const errJson = await res.json().catch(() => ({}));
+        throw new Error(errJson?.error?.message || `HTTP error ${res.status}`);
+      }
+
+      const data = await res.json();
+      const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+      testResult.className = "text-[11px] p-2.5 rounded-lg font-medium bg-emerald-50 text-emerald-800 border border-emerald-200";
+      testResult.innerHTML = `<strong>✓ Connection Successful!</strong> Google Gemini AI is active and ready for optical bill scanning (${reply || "OK"}).`;
+      Toast.show("AI Connection verified successfully!", "success");
+      if (statusBadge) {
+        statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span><span>Active</span>`;
+      }
+    } catch (err: any) {
+      console.error("AI connection test error:", err);
+      testResult.className = "text-[11px] p-2.5 rounded-lg font-medium bg-red-50 text-red-700 border border-red-200";
+      testResult.innerText = `✕ Connection Failed: ${err.message || String(err)}`;
+    } finally {
+      if (testKeyText) testKeyText.innerText = "Test AI Connection";
     }
   });
 }

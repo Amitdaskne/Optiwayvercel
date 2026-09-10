@@ -2,6 +2,7 @@ import * as XLSX from "xlsx";
 import { dbService, Product, PendingProduct, Supplier, PurchaseBill, PurchaseBillItem, InventoryMovement, Expense, generateUniqueSupplierLedgerId, validateSupplierLedgerId } from "./db";
 import { Toast } from "../components/layout";
 import { BarcodePrinter, Sticker79x10Item } from "./barcodePrinter";
+import { getGeminiApiKey, validateGeminiApiKey } from "../../api/_apiKey";
 
 export interface ScanBillResult {
   supplierName?: string;
@@ -982,26 +983,255 @@ ITEMS:
   }
 
   /**
+   * Direct client-side Gemini AI caller (used on static hosting like Vercel when /api is unavailable)
+   */
+  private static async callGeminiDirectly(params: { fileData?: string; mimeType?: string; rawText?: string; fileName?: string }): Promise<ScanBillResult> {
+    const apiKey = getGeminiApiKey();
+    const validation = validateGeminiApiKey(apiKey);
+    if (!validation.valid) {
+      throw new Error(validation.error || "Gemini API Key missing or invalid.");
+    }
+
+    const promptInstructions = `You are an expert optical retail procurement & billing auditor.
+Analyze this optical invoice/purchase bill (covers optical frames, ophthalmic prescription lenses, contact lenses, sunglasses, accessories, lab charges).
+Extract all supplier details, invoice metadata, payment status, and every line item.
+
+Return a valid JSON object matching EXACTLY this schema:
+{
+  "supplierName": "Company or distributor name (e.g. 'EssilorLuxottica', 'Zeiss Vision Care', 'Safilo', or local distributor)",
+  "supplierLedgerId": "Supplier vendor code / ledger ID ONLY if explicitly printed on the bill/invoice, otherwise return ''",
+  "supplierPhone": "Supplier contact number if visible, else ''",
+  "supplierEmail": "Supplier contact email if visible, else ''",
+  "supplierTaxId": "GSTIN / VAT / Tax ID if visible, else ''",
+  "supplierAddress": "Supplier address if visible, else ''",
+  "billNumber": "Invoice or Bill reference number (e.g. 'BIL-2026-081')",
+  "billDate": "Invoice date in 'YYYY-MM-DD' format (default to today if missing)",
+  "dueDate": "Payment due date in 'YYYY-MM-DD' format if present, else ''",
+  "paymentStatus": "Paid" | "Unpaid" | "Partial",
+  "paymentMethod": "Bank Transfer" | "Cash" | "UPI" | "Cheque" | "Card" | "Credit",
+  "subtotal": number,
+  "taxRate": number,
+  "taxTotal": number,
+  "discountTotal": number,
+  "grandTotal": number,
+  "items": [
+    {
+      "name": "Full optical product name",
+      "modelNumber": "Article Model Number / Code or SKU from invoice (e.g. 'MOD-RB3025', 'RB3025-001', 'LNS-ZS160')",
+      "sku": "Article Model Number / Code or SKU from invoice",
+      "barcode": "Barcode or EAN-13/UPC 12-13 digit number if printed on invoice, else ''",
+      "hsnCode": "HSN/SAC 4-8 digit tax classification code, else ''",
+      "size": "Optical frame eye size or lens dimensions, else ''",
+      "color": "Frame colour or lens color code, else ''",
+      "category": "Frame" | "Lens" | "Contact Lens" | "Accessories" | "Services",
+      "brand": "Brand name (e.g. 'Ray-Ban', 'Zeiss', 'Essilor')",
+      "model": "Model or specification",
+      "quantity": number,
+      "purchasePrice": number,
+      "sellingPrice": number,
+      "taxRate": number,
+      "discount": number,
+      "minStockLevel": number
+    }
+  ],
+  "notes": "Any payment terms, remarks or optical lab notes"
+}
+
+Important rules:
+1. Ensure all numeric amounts are pure numbers (no currency symbols or commas).
+2. HSN code and Barcode MUST NOT be confused.
+3. If size or colour is present, extract them.
+4. If sellingPrice is not specified, calculate standard optical retail price with 1.8x - 2.0x markup over purchasePrice.
+5. Output MUST be ONLY valid JSON without markdown fences.`;
+
+    const contentsParts: any[] = [];
+
+    if (params.fileData) {
+      let cleanBase64 = params.fileData;
+      let detectedMime = params.mimeType || "application/pdf";
+
+      if (params.fileData.includes(";base64,")) {
+        const parts = params.fileData.split(";base64,");
+        const match = parts[0].match(/data:(.*?)$/);
+        if (match && match[1]) {
+          detectedMime = match[1];
+        }
+        cleanBase64 = parts[1];
+      }
+
+      if (detectedMime.includes("pdf")) {
+        detectedMime = "application/pdf";
+      } else if (detectedMime.includes("jpeg") || detectedMime.includes("jpg")) {
+        detectedMime = "image/jpeg";
+      } else if (detectedMime.includes("png")) {
+        detectedMime = "image/png";
+      } else if (detectedMime.includes("webp")) {
+        detectedMime = "image/webp";
+      }
+
+      contentsParts.push({
+        inlineData: {
+          mimeType: detectedMime,
+          data: cleanBase64
+        }
+      });
+    }
+
+    if (params.rawText) {
+      contentsParts.push({
+        text: `Raw Invoice / Purchase Bill Text to parse:\n${params.rawText}`
+      });
+    }
+
+    contentsParts.push({
+      text: promptInstructions
+    });
+
+    const candidateModels = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"];
+    let rawResponseText = "";
+    let lastError: any = null;
+
+    for (const model of candidateModels) {
+      try {
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(apiKey)}`;
+        const res = await fetch(url, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            contents: [
+              {
+                parts: contentsParts
+              }
+            ],
+            generationConfig: {
+              responseMimeType: "application/json"
+            }
+          })
+        });
+
+        if (!res.ok) {
+          const errBody = await res.json().catch(() => ({}));
+          const errMsg = errBody?.error?.message || `HTTP ${res.status}`;
+          throw new Error(errMsg);
+        }
+
+        const data = await res.json();
+        const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (text && text.trim().length > 0) {
+          rawResponseText = text;
+          break;
+        }
+      } catch (err: any) {
+        lastError = err;
+        console.warn(`Direct model call to ${model} failed:`, err);
+      }
+    }
+
+    if (!rawResponseText) {
+      throw new Error(lastError?.message || "Could not extract invoice data from Gemini AI.");
+    }
+
+    let parsed: any;
+    try {
+      parsed = JSON.parse(rawResponseText);
+    } catch {
+      const cleaned = rawResponseText.replace(/```json/gi, "").replace(/```/g, "").trim();
+      parsed = JSON.parse(cleaned);
+    }
+
+    if (!parsed.items || !Array.isArray(parsed.items)) {
+      parsed.items = [];
+    } else {
+      parsed.items = parsed.items.map((item: any, idx: number) => {
+        const purchasePrice = typeof item.purchasePrice === "number" ? item.purchasePrice : (parseFloat(String(item.purchasePrice || 0).replace(/[^0-9.]/g, "")) || 0);
+        const sellingPrice = typeof item.sellingPrice === "number" ? item.sellingPrice : (parseFloat(String(item.sellingPrice || 0).replace(/[^0-9.]/g, "")) || (purchasePrice > 0 ? Math.round(purchasePrice * 1.8) : 0));
+        const quantity = parseInt(String(item.quantity || 1).replace(/[^0-9]/g, "")) || 1;
+        const taxRate = typeof item.taxRate === "number" ? item.taxRate : (parseFloat(String(item.taxRate || 18).replace(/[^0-9.]/g, "")) || 18);
+        const discount = typeof item.discount === "number" ? item.discount : (parseFloat(String(item.discount || 0).replace(/[^0-9.]/g, "")) || 0);
+        const modelNumberVal = String(item.modelNumber || item.sku || `MOD-${Math.floor(1000 + Math.random() * 9000)}`).trim();
+        const rawBarcode = item.barcode ? String(item.barcode).trim() : "";
+        const generatedBarcode = rawBarcode || PurchaseBillScanner.generateAutoBarcode();
+
+        return {
+          name: String(item.name || `Optical Item #${idx + 1}`).trim(),
+          modelNumber: modelNumberVal,
+          sku: modelNumberVal,
+          barcode: generatedBarcode,
+          hsnCode: item.hsnCode ? String(item.hsnCode).trim() : "",
+          size: item.size ? String(item.size).trim() : "",
+          color: item.color ? String(item.color).trim() : (item.colour ? String(item.colour).trim() : ""),
+          category: item.category || "Frame",
+          brand: String(item.brand || "OptiWay").trim(),
+          model: String(item.model || "").trim(),
+          quantity: Math.max(1, quantity),
+          purchasePrice: Math.max(0, purchasePrice),
+          sellingPrice: Math.max(0, sellingPrice),
+          taxRate: Math.max(0, taxRate),
+          discount: Math.max(0, discount),
+          minStockLevel: item.minStockLevel || 3
+        };
+      });
+    }
+
+    if (!parsed.supplierName) parsed.supplierName = "Optical Supplier";
+    if (!parsed.billNumber) parsed.billNumber = `BIL-${Date.now().toString().slice(-6)}`;
+    if (!parsed.billDate) parsed.billDate = new Date().toISOString().slice(0, 10);
+
+    const parseNum = (val: any, def: number) => {
+      if (val !== undefined && val !== null) {
+        const p = parseFloat(String(val).replace(/[^0-9.]/g, ""));
+        return !isNaN(p) && p >= 0 ? p : def;
+      }
+      return def;
+    };
+
+    parsed.discountTotal = parseNum(parsed.discountTotal, 0);
+    parsed.subtotal = parseNum(parsed.subtotal, 0);
+    parsed.taxTotal = parseNum(parsed.taxTotal, 0);
+    parsed.taxRate = parseNum(parsed.taxRate, 18);
+    parsed.grandTotal = parseNum(parsed.grandTotal, 0);
+
+    return parsed as ScanBillResult;
+  }
+
+  /**
    * Process the uploaded document with server-side Gemini API with fallback
    */
   private static async processBillWithAI(base64: string, mimeType: string, fileName: string) {
     this.showScanningAnimation(fileName);
 
     try {
-      const response = await fetch("/api/scan-purchase-bill", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ fileData: base64, mimeType, fileName })
-      });
+      let extracted: ScanBillResult | null = null;
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Server responded with status ${response.status}`);
+      // 1. Try server endpoint first
+      try {
+        const response = await fetch("/api/scan-purchase-bill", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ fileData: base64, mimeType, fileName })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            extracted = result.data;
+          }
+        } else {
+          console.warn(`Server endpoint returned status ${response.status}, seamlessly switching to direct AI scan...`);
+        }
+      } catch (netErr) {
+        console.warn("Server endpoint unreachable, seamlessly switching to direct AI scan...", netErr);
       }
 
-      const result = await response.json();
-      if (!result.success || !result.data) {
-        throw new Error(result.error || "Failed to extract structured data from document.");
+      // 2. If server endpoint was 404, not configured, or failed, use direct client-side Gemini scan
+      if (!extracted) {
+        extracted = await PurchaseBillScanner.callGeminiDirectly({ fileData: base64, mimeType, fileName });
+      }
+
+      if (!extracted) {
+        throw new Error("Failed to extract structured data from document.");
       }
 
       // Refresh registered suppliers from DB for fresh matching
@@ -1011,7 +1241,6 @@ ITEMS:
         console.warn("Failed to refresh suppliers list:", e);
       }
 
-      const extracted = result.data;
       const supName = (extracted.supplierName || "").trim();
       const matched = this.registeredSuppliers.find(
         s => s.name && s.name.trim().toLowerCase() === supName.toLowerCase()
@@ -1059,62 +1288,80 @@ ITEMS:
     this.showScanningAnimation("pasted_bill_text.txt");
 
     try {
-      const response = await fetch("/api/scan-purchase-bill", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ rawText, fileName: "pasted_bill.txt" })
-      });
+      let extracted: ScanBillResult | null = null;
 
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success && result.data) {
-          try {
-            this.registeredSuppliers = await dbService.getList<Supplier>("suppliers");
-          } catch (e) {
-            console.warn("Failed to refresh suppliers list:", e);
+      try {
+        const response = await fetch("/api/scan-purchase-bill", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ rawText, fileName: "pasted_bill.txt" })
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success && result.data) {
+            extracted = result.data;
           }
-
-          const extracted = result.data;
-          const supName = (extracted.supplierName || "").trim();
-          const matched = this.registeredSuppliers.find(
-            s => s.name && s.name.trim().toLowerCase() === supName.toLowerCase()
-          );
-
-          let ledgerId = (extracted.supplierLedgerId || "").trim().toUpperCase();
-          const isGeneric = !ledgerId ||
-            ledgerId === "LED-SUP-01" ||
-            ledgerId === "LED-SUP-1" ||
-            ledgerId === "LED-SUP-001" ||
-            ledgerId === "LED-SUP" ||
-            ledgerId === "SUP-01" ||
-            ledgerId === "SUP-1" ||
-            ledgerId === "LED-SUP-02" ||
-            ledgerId === "LED-SUP-2" ||
-            ledgerId === "LED-01" ||
-            ledgerId === "LED-1";
-
-          if (matched && matched.ledgerId) {
-            ledgerId = matched.ledgerId;
-          } else if (isGeneric || this.registeredSuppliers.some(s => s.ledgerId && s.ledgerId.trim().toUpperCase() === ledgerId)) {
-            ledgerId = generateUniqueSupplierLedgerId(supName || "Supplier", this.registeredSuppliers);
-          }
-          extracted.supplierLedgerId = ledgerId;
-
-          this.extractedData = extracted;
-          this.currentItems = Array.isArray(extracted.items) ? extracted.items.map((item: any) => ({
-            ...item,
-            barcode: item.barcode?.trim() || PurchaseBillScanner.generateAutoBarcode()
-          })) : [];
-          this.currentFileData = {
-            base64: "",
-            mimeType: "text/plain",
-            fileName: "pasted_invoice.txt",
-            previewUrl: ""
-          };
-          Toast.show("Invoice text successfully parsed!", "success");
-          this.showVerificationAndEditStep();
-          return;
         }
+      } catch (apiErr) {
+        console.warn("Server text scan endpoint unreachable:", apiErr);
+      }
+
+      // If server scan was unavailable, try direct Gemini call
+      if (!extracted) {
+        try {
+          extracted = await PurchaseBillScanner.callGeminiDirectly({ rawText, fileName: "pasted_bill.txt" });
+        } catch (directErr) {
+          console.warn("Direct Gemini text scan failed, falling back to local heuristic parser:", directErr);
+        }
+      }
+
+      if (extracted) {
+        try {
+          this.registeredSuppliers = await dbService.getList<Supplier>("suppliers");
+        } catch (e) {
+          console.warn("Failed to refresh suppliers list:", e);
+        }
+
+        const supName = (extracted.supplierName || "").trim();
+        const matched = this.registeredSuppliers.find(
+          s => s.name && s.name.trim().toLowerCase() === supName.toLowerCase()
+        );
+
+        let ledgerId = (extracted.supplierLedgerId || "").trim().toUpperCase();
+        const isGeneric = !ledgerId ||
+          ledgerId === "LED-SUP-01" ||
+          ledgerId === "LED-SUP-1" ||
+          ledgerId === "LED-SUP-001" ||
+          ledgerId === "LED-SUP" ||
+          ledgerId === "SUP-01" ||
+          ledgerId === "SUP-1" ||
+          ledgerId === "LED-SUP-02" ||
+          ledgerId === "LED-SUP-2" ||
+          ledgerId === "LED-01" ||
+          ledgerId === "LED-1";
+
+        if (matched && matched.ledgerId) {
+          ledgerId = matched.ledgerId;
+        } else if (isGeneric || this.registeredSuppliers.some(s => s.ledgerId && s.ledgerId.trim().toUpperCase() === ledgerId)) {
+          ledgerId = generateUniqueSupplierLedgerId(supName || "Supplier", this.registeredSuppliers);
+        }
+        extracted.supplierLedgerId = ledgerId;
+
+        this.extractedData = extracted;
+        this.currentItems = Array.isArray(extracted.items) ? extracted.items.map((item: any) => ({
+          ...item,
+          barcode: item.barcode?.trim() || PurchaseBillScanner.generateAutoBarcode()
+        })) : [];
+        this.currentFileData = {
+          base64: "",
+          mimeType: "text/plain",
+          fileName: "pasted_invoice.txt",
+          previewUrl: ""
+        };
+        Toast.show("Invoice text successfully parsed!", "success");
+        this.showVerificationAndEditStep();
+        return;
       }
     } catch (apiErr) {
       console.warn("Server text scan failed, using local heuristic parser:", apiErr);

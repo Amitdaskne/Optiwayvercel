@@ -17,7 +17,36 @@ export const GEMINI_API_KEY: string = "AIzaSyCe6SPRFnMpAXyyWfWwv7rSWU2DupI4MmI";
  * or fall back to the manual GEMINI_API_KEY constant above.
  */
 export function getGeminiApiKey(): string {
-  let raw = (process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || GEMINI_API_KEY || "").trim();
+  let envNode = "";
+  try {
+    if (typeof process !== "undefined" && process && process.env) {
+      envNode = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || "";
+    }
+  } catch {
+    // browser environment
+  }
+
+  let envVite = "";
+  try {
+    // @ts-ignore
+    if (typeof import.meta !== "undefined" && import.meta && import.meta.env) {
+      // @ts-ignore
+      envVite = import.meta.env.VITE_GEMINI_API_KEY || "";
+    }
+  } catch {
+    // fallback
+  }
+
+  let localKey = "";
+  try {
+    if (typeof localStorage !== "undefined") {
+      localKey = localStorage.getItem("OPTIWAY_GEMINI_API_KEY") || "";
+    }
+  } catch {
+    // localStorage unavailable
+  }
+
+  let raw = (envNode || envVite || localKey || GEMINI_API_KEY || "").trim();
 
   // Remove wrapping quotes if user pasted with quotes like '"AIza..."' or "'AIza...'"
   raw = raw.replace(/^['"`]+|['"`]+$/g, "").trim();
