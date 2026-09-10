@@ -2,6 +2,7 @@ import express from "express";
 import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
+import { getGeminiApiKey } from "./api/_apiKey";
 
 async function startServer() {
   const app = express();
@@ -28,11 +29,11 @@ async function startServer() {
         });
       }
 
-      const apiKey = process.env.GEMINI_API_KEY;
+      const apiKey = getGeminiApiKey();
       if (!apiKey) {
         return res.status(500).json({
           success: false,
-          error: "GEMINI_API_KEY is not configured in server environment."
+          error: "GEMINI_API_KEY missing! Please paste your key into 'api/_apiKey.ts' (export const GEMINI_API_KEY = '...') or set it in server environment."
         });
       }
 
@@ -209,9 +210,12 @@ Important rules:
           const rawBarcode = item.barcode ? String(item.barcode).trim() : "";
           const generatedBarcode = rawBarcode || `890${Math.floor(100000000 + Math.random() * 900000000)}`;
 
+          const modelNumberVal = String(item.modelNumber || item.sku || `MOD-${Math.floor(1000 + Math.random() * 9000)}`).trim();
+
           return {
             name: String(item.name || `Optical Item #${idx + 1}`).trim(),
-            sku: String(item.sku || `OPT-${Math.floor(1000 + Math.random() * 9000)}`).trim(),
+            modelNumber: modelNumberVal,
+            sku: modelNumberVal,
             barcode: generatedBarcode,
             hsnCode: item.hsnCode ? String(item.hsnCode).trim() : "",
             size: item.size ? String(item.size).trim() : "",

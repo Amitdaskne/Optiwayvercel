@@ -2,6 +2,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
     { "source": "/products", "destination": "/products.html" },
     { "source": "/inventory", "destination": "/inventory.html" },
     { "source": "/sales", "destination": "/sales.html" },
@@ -17,6 +18,6 @@
     { "source": "/settings", "destination": "/settings.html" },
     { "source": "/dashboard", "destination": "/dashboard.html" },
     { "source": "/login", "destination": "/login.html" },
-    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
+    { "source": "/((?!api/|.*\\.).*)", "destination": "/index.html" }
   ]
 }
