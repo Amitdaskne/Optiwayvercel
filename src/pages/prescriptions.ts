@@ -2,6 +2,7 @@ import { initAuthGuard } from "../lib/auth";
 import { renderAppLayout, Toast } from "../components/layout";
 import { dbService, Prescription, Customer, StoreSettings } from "../lib/db";
 import { downloadPrescriptionPDF, downloadPrescriptionListPDF } from "../lib/exportUtils";
+import { sendPrescriptionWhatsAppPrompt } from "../lib/whatsapp";
 
 let rxList: Prescription[] = [];
 let customerList: Customer[] = [];
@@ -74,6 +75,10 @@ function renderRxTable() {
       <td class="p-3.5 text-slate-500 italic max-w-xs truncate">${r.notes || "—"}</td>
       <td class="p-3.5 text-right whitespace-nowrap">
         <div class="inline-flex items-center gap-1.5">
+          <button class="btn-whatsapp-rx px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs rounded border border-emerald-300 flex items-center gap-1 cursor-pointer transition-colors shadow-2xs" data-id="${r.id}" title="Send Prescription to Patient on WhatsApp">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>WhatsApp</span>
+          </button>
           <button class="btn-pdf-rx px-2.5 py-1 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded border border-rose-200 flex items-center gap-1 cursor-pointer transition-colors shadow-2xs" data-id="${r.id}" title="Download Prescription PDF">
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
             <span>PDF</span>
@@ -84,6 +89,16 @@ function renderRxTable() {
       </td>
     </tr>
   `).join("");
+
+  tbody.querySelectorAll(".btn-whatsapp-rx").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const id = btn.getAttribute("data-id")!;
+      const match = rxList.find(r => r.id === id);
+      if (!match) return;
+      const cust = customerList.find(c => c.id === match.customerId) || null;
+      sendPrescriptionWhatsAppPrompt(match, cust?.mobile || "", storeSettings);
+    });
+  });
 
   tbody.querySelectorAll(".btn-pdf-rx").forEach(btn => {
     btn.addEventListener("click", () => exportSingleRxPDF(btn.getAttribute("data-id")!));
@@ -172,6 +187,29 @@ function setupEvents() {
     } catch (err) {
       console.error(err);
       Toast.show("Failed to export prescription list PDF.", "error");
+    }
+  });
+
+  // Save & WhatsApp button
+  document.getElementById("btn-save-whatsapp-rx")?.addEventListener("click", async () => {
+    const formData = getFormData();
+    if (!formData) return;
+
+    try {
+      const savedId = await dbService.saveItem("prescriptions", formData.payload);
+      const fullRx: Prescription = {
+        ...(formData.payload as Prescription),
+        id: savedId || formData.payload.id || "RX"
+      };
+
+      Toast.show(`Prescription for ${formData.cust.name} saved.`, "success");
+      closeRxModal();
+      await loadRxData();
+
+      sendPrescriptionWhatsAppPrompt(fullRx, formData.cust.mobile, storeSettings);
+    } catch (err) {
+      console.error(err);
+      Toast.show("Failed to save and send prescription.", "error");
     }
   });
 

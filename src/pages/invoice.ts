@@ -2,6 +2,7 @@ import { initAuthGuard } from "../lib/auth";
 import { renderAppLayout, Toast } from "../components/layout";
 import { dbService, Sale, SaleItem, Order, Customer, Prescription, StoreSettings, Receipt, ensureArray } from "../lib/db";
 import { downloadInvoicePDF, printInvoiceDirect, printThermalReceiptDirect } from "../lib/exportUtils";
+import { sendSaleWhatsAppPrompt } from "../lib/whatsapp";
 
 let salesList: Sale[] = [];
 let currentSale: Sale | null = null;
@@ -192,6 +193,15 @@ function setupEvents() {
       currentSale = match;
       renderInvoice(currentSale);
     }
+  });
+
+  // WhatsApp Share Invoice
+  document.getElementById("btn-whatsapp-invoice")?.addEventListener("click", () => {
+    if (!currentSale) {
+      Toast.show("No invoice loaded to share on WhatsApp", "error");
+      return;
+    }
+    sendSaleWhatsAppPrompt(currentSale, currentPrescription, storeSettings);
   });
 
   // Direct A4 Print Invoice

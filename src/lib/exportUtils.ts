@@ -1,5 +1,84 @@
 import { jsPDF } from "jspdf";
 import { Sale, Expense, Prescription, Customer, StoreSettings, dbService, ensureArray, formatDateStr } from "./db";
+import { hexToRgb } from "./theme";
+
+/**
+ * Loads an image from a URL or Data URI and prepares it for jsPDF.
+ * Uses an in-memory HTMLImageElement and HTMLCanvasElement to convert to PNG data URL
+ * so that cross-origin images, base64 strings, and different formats all work reliably.
+ */
+export async function loadImageForPdf(
+  url?: string | null,
+  timeoutMs = 3500
+): Promise<{ data: string; format: "PNG" | "JPEG"; width: number; height: number } | null> {
+  if (!url || typeof url !== "string" || !url.trim()) return null;
+  const cleanUrl = url.trim();
+
+  // If already a base64 data URL
+  if (cleanUrl.startsWith("data:image/")) {
+    const isPng = cleanUrl.startsWith("data:image/png");
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        resolve({
+          data: cleanUrl,
+          format: isPng ? "PNG" : "JPEG",
+          width: img.naturalWidth || 100,
+          height: img.naturalHeight || 100
+        });
+      };
+      img.onerror = () => resolve(null);
+      img.src = cleanUrl;
+    });
+  }
+
+  // If external URL (e.g. Cloudinary)
+  return new Promise((resolve) => {
+    let timer: any = null;
+    const img = new Image();
+    img.crossOrigin = "anonymous";
+
+    const finish = (result: { data: string; format: "PNG" | "JPEG"; width: number; height: number } | null) => {
+      if (timer) clearTimeout(timer);
+      resolve(result);
+    };
+
+    timer = setTimeout(() => {
+      finish(null);
+    }, timeoutMs);
+
+    img.onload = () => {
+      try {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.naturalWidth || 120;
+        canvas.height = img.naturalHeight || 120;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          finish({ data: cleanUrl, format: "JPEG", width: img.naturalWidth || 100, height: img.naturalHeight || 100 });
+          return;
+        }
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = canvas.toDataURL("image/png");
+        finish({
+          data: dataUrl,
+          format: "PNG",
+          width: canvas.width,
+          height: canvas.height
+        });
+      } catch {
+        finish({
+          data: cleanUrl,
+          format: "JPEG",
+          width: img.naturalWidth || 100,
+          height: img.naturalHeight || 100
+        });
+      }
+    };
+
+    img.onerror = () => finish(null);
+    img.src = cleanUrl;
+  });
+}
 
 export interface DailyReportMetrics {
   dateStr: string;
@@ -104,26 +183,58 @@ export function calculateDailyMetrics(sales: Sale[], expenses: Expense[], target
 /**
  * Direct PDF Generator using jsPDF
  */
-export function downloadTodayDetailedPDFReport(sales: Sale[], expenses: Expense[], targetDateStr?: string) {
+export async function downloadTodayDetailedPDFReport(
+  sales: Sale[],
+  expenses: Expense[],
+  targetDateStr?: string,
+  storeSettings?: StoreSettings | null
+) {
+  let settings = storeSettings;
+  if (!settings) {
+    try {
+      settings = await dbService.getSettings();
+    } catch {
+      settings = null;
+    }
+  }
+
   const { metrics, todaySales, todayExpenses } = calculateDailyMetrics(sales, expenses, targetDateStr);
   const dateStr = metrics.dateStr;
 
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   let y = 12;
 
-  // Header Banner
-  doc.setFillColor(15, 23, 42); // slate-900
-  doc.rect(10, y, 190, 22, "F");
+  const storeName = (settings?.storeName || localStorage.getItem("optiway_store_name") || "OPTIWAY OPTICAL STORE").toUpperCase();
+  const themeColor = settings?.themeColor || localStorage.getItem("optiway_theme_color") || "#1f6feb";
+  const { r, g, b } = hexToRgb(themeColor);
+
+  // Header Banner with Dynamic Store Theme Color
+  doc.setFillColor(r, g, b);
+  doc.rect(10, y, 190, 24, "F");
+
+  let textStartX = 15;
+  const logoUrl = settings?.logoUrl || localStorage.getItem("optiway_logo_url");
+  const logo = await loadImageForPdf(logoUrl);
+  if (logo) {
+    try {
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(13, y + 2, 20, 20, 2, 2, "F");
+      doc.addImage(logo.data, logo.format, 14, y + 3, 18, 18);
+      textStartX = 37;
+    } catch (err) {
+      console.warn("Could not render logo in daily report PDF:", err);
+    }
+  }
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(14);
-  doc.text("OPTIWAY OPTICAL STORE", 15, y + 8);
+  doc.setFontSize(13);
+  doc.text(storeName, textStartX, y + 8);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
-  doc.setTextColor(203, 213, 225); // slate-300
-  doc.text("COMPLETE DAILY SALES, EXPENSES & CASHFLOW REPORT", 15, y + 15);
+  doc.setTextColor(241, 245, 249);
+  doc.text("COMPLETE DAILY SALES, EXPENSES & CASHFLOW REPORT", textStartX, y + 15);
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
@@ -133,7 +244,7 @@ export function downloadTodayDetailedPDFReport(sales: Sale[], expenses: Expense[
   doc.setFontSize(8);
   doc.text(`Generated: ${new Date().toLocaleTimeString()}`, 195, y + 15, { align: "right" });
 
-  y += 27;
+  y += 29;
 
   // Section: Financial Metrics Cards
   doc.setTextColor(15, 23, 42);
@@ -366,9 +477,13 @@ export function downloadTodayDetailedPDFReport(sales: Sale[], expenses: Expense[
 /**
  * Print View Window with Printable Layout & PDF Trigger
  */
-export function printTodayDetailedReportHTML(sales: Sale[], expenses: Expense[], targetDateStr?: string) {
+export function printTodayDetailedReportHTML(sales: Sale[], expenses: Expense[], targetDateStr?: string, storeSettings?: StoreSettings | null) {
   const { metrics, todaySales, todayExpenses } = calculateDailyMetrics(sales, expenses, targetDateStr);
   const dateStr = metrics.dateStr;
+
+  const storeName = storeSettings?.storeName || localStorage.getItem("optiway_store_name") || "OPTIWAY OPTICAL STORE";
+  const storeLogo = storeSettings?.logoUrl || localStorage.getItem("optiway_logo_url") || "";
+  const themeColor = storeSettings?.themeColor || localStorage.getItem("optiway_theme_color") || "#1f6feb";
 
   const printWindow = window.open("", "_blank");
   if (!printWindow) return;
@@ -403,13 +518,13 @@ export function printTodayDetailedReportHTML(sales: Sale[], expenses: Expense[],
     <!DOCTYPE html>
     <html>
       <head>
-        <title>Today's Detailed Financial Report - ${dateStr}</title>
+        <title>${storeName} - Financial Report - ${dateStr}</title>
         <style>
           body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; padding: 20px; color: #0f172a; margin: 0; background: #ffffff; }
-          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #0f172a; padding-bottom: 12px; margin-bottom: 20px; }
-          .title { font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+          .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid ${themeColor}; padding-bottom: 14px; margin-bottom: 20px; }
+          .title { font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: ${themeColor}; }
           .sub { font-size: 11px; color: #64748b; margin-top: 2px; }
-          .section-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e293b; margin-top: 20px; margin-bottom: 8px; border-left: 3px solid #0284c7; padding-left: 8px; }
+          .section-title { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: #1e293b; margin-top: 20px; margin-bottom: 8px; border-left: 3px solid ${themeColor}; padding-left: 8px; }
           .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 15px; }
           .card { background: #f8fafc; border: 1px solid #e2e8f0; padding: 10px 12px; border-radius: 8px; }
           .card-label { font-size: 9px; font-weight: 700; color: #64748b; text-transform: uppercase; }
@@ -425,13 +540,20 @@ export function printTodayDetailedReportHTML(sales: Sale[], expenses: Expense[],
       </head>
       <body>
         <div class="no-print" style="margin-bottom: 15px; display: flex; justify-content: flex-end; gap: 10px;">
-          <button onclick="window.print()" style="padding: 8px 16px; background: #0f172a; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Print / Save PDF</button>
+          <button onclick="window.print()" style="padding: 8px 16px; background: ${themeColor}; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer;">Print / Save PDF</button>
         </div>
 
         <div class="header">
-          <div>
-            <div class="title">OPTIWAY OPTICAL STORE</div>
-            <div class="sub">COMPLETE DAILY SALES, EXPENSES & CASHFLOW RECONCILIATION</div>
+          <div style="display: flex; align-items: center; gap: 14px;">
+            ${storeLogo ? `
+              <div style="width: 52px; height: 52px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; padding: 2px;">
+                <img src="${storeLogo}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+              </div>
+            ` : ""}
+            <div>
+              <div class="title">${storeName}</div>
+              <div class="sub">COMPLETE DAILY SALES, EXPENSES & CASHFLOW RECONCILIATION</div>
+            </div>
           </div>
           <div style="text-align: right;">
             <div style="font-weight: bold; font-size: 14px;">Date: ${dateStr}</div>
@@ -669,26 +791,42 @@ export async function downloadPrescriptionPDF(
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   let y = 14;
 
-  const storeName = (settings?.storeName || "OPTIWAY VISION CARE").toUpperCase();
+  const storeName = (settings?.storeName || localStorage.getItem("optiway_store_name") || "OPTIWAY VISION CARE").toUpperCase();
   const storePhone = settings?.phone || "+1 (800) 555-0199";
   const storeEmail = settings?.email || "care@optiway.com";
   const storeAddress = settings?.address || "Optical Clinic & Dispensing Optometry";
+  const themeColor = settings?.themeColor || localStorage.getItem("optiway_theme_color") || "#1f6feb";
+  const { r, g, b } = hexToRgb(themeColor);
 
   // Top Header Banner
-  doc.setFillColor(15, 23, 42); // slate-900
+  doc.setFillColor(r, g, b);
   doc.roundedRect(12, y, 186, 26, 2, 2, "F");
+
+  let textStartX = 18;
+  const logoUrl = settings?.logoUrl || localStorage.getItem("optiway_logo_url");
+  const logo = await loadImageForPdf(logoUrl);
+  if (logo) {
+    try {
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(15, y + 2, 22, 22, 2, 2, "F");
+      doc.addImage(logo.data, logo.format, 16, y + 3, 20, 20);
+      textStartX = 41;
+    } catch (err) {
+      console.warn("Could not render logo in prescription PDF:", err);
+    }
+  }
 
   // Store Brand Title
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.text(storeName, 18, y + 9);
+  doc.setFontSize(14);
+  doc.text(storeName, textStartX, y + 9);
 
   // Subtitle
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8.5);
-  doc.setTextColor(203, 213, 225); // slate-300
-  doc.text(`${storeAddress}  •  Ph: ${storePhone}  •  ${storeEmail}`, 18, y + 17);
+  doc.setFontSize(8);
+  doc.setTextColor(241, 245, 249);
+  doc.text(`${storeAddress}  •  Ph: ${storePhone}  •  ${storeEmail}`, textStartX, y + 17);
 
   // Right Header Label
   doc.setTextColor(56, 189, 248); // sky-400
@@ -998,22 +1136,38 @@ export async function downloadPrescriptionListPDF(
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   let y = 14;
 
-  const storeName = (settings?.storeName || "OPTIWAY VISION CARE").toUpperCase();
+  const storeName = (settings?.storeName || localStorage.getItem("optiway_store_name") || "OPTIWAY VISION CARE").toUpperCase();
+  const themeColor = settings?.themeColor || localStorage.getItem("optiway_theme_color") || "#1f6feb";
+  const { r, g, b } = hexToRgb(themeColor);
   const dateStr = new Date().toISOString().slice(0, 10);
 
   // Header Banner
-  doc.setFillColor(15, 23, 42);
-  doc.rect(10, y, 190, 20, "F");
+  doc.setFillColor(r, g, b);
+  doc.rect(10, y, 190, 22, "F");
+
+  let textStartX = 15;
+  const logoUrl = settings?.logoUrl || localStorage.getItem("optiway_logo_url");
+  const logo = await loadImageForPdf(logoUrl);
+  if (logo) {
+    try {
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(12, y + 2, 18, 18, 1.5, 1.5, "F");
+      doc.addImage(logo.data, logo.format, 13, y + 3, 16, 16);
+      textStartX = 34;
+    } catch (err) {
+      console.warn("Could not render logo in prescription list PDF:", err);
+    }
+  }
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
-  doc.text(storeName, 15, y + 8);
+  doc.text(storeName, textStartX, y + 8);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
-  doc.setTextColor(203, 213, 225);
-  doc.text(`PATIENT PRESCRIPTIONS (Rx) MASTER LOG (${prescriptions.length} Records)`, 15, y + 15);
+  doc.setTextColor(241, 245, 249);
+  doc.text(`PATIENT PRESCRIPTIONS (Rx) MASTER LOG (${prescriptions.length} Records)`, textStartX, y + 15);
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
@@ -1096,7 +1250,9 @@ export async function downloadSalesHistoryListPDF(
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   let y = 14;
 
-  const storeName = (settings?.storeName || "OPTIWAY VISION CARE").toUpperCase();
+  const storeName = (settings?.storeName || localStorage.getItem("optiway_store_name") || "OPTIWAY VISION CARE").toUpperCase();
+  const themeColor = settings?.themeColor || localStorage.getItem("optiway_theme_color") || "#1f6feb";
+  const { r, g, b } = hexToRgb(themeColor);
   const dateStr = new Date().toISOString().slice(0, 10);
 
   const totalRevenue = sales.reduce((sum, s) => sum + (s.grandTotal || 0), 0);
@@ -1104,18 +1260,32 @@ export async function downloadSalesHistoryListPDF(
   const totalPending = sales.reduce((sum, s) => sum + (s.pendingAmount || 0), 0);
 
   // Header Banner
-  doc.setFillColor(15, 23, 42);
-  doc.rect(10, y, 190, 22, "F");
+  doc.setFillColor(r, g, b);
+  doc.rect(10, y, 190, 24, "F");
+
+  let textStartX = 15;
+  const logoUrl = settings?.logoUrl || localStorage.getItem("optiway_logo_url");
+  const logo = await loadImageForPdf(logoUrl);
+  if (logo) {
+    try {
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(13, y + 2, 20, 20, 2, 2, "F");
+      doc.addImage(logo.data, logo.format, 14, y + 3, 18, 18);
+      textStartX = 37;
+    } catch (err) {
+      console.warn("Could not render logo in sales history PDF:", err);
+    }
+  }
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
-  doc.text(storeName, 15, y + 8);
+  doc.text(storeName, textStartX, y + 8);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8.5);
-  doc.setTextColor(203, 213, 225);
-  doc.text(`${reportTitle.toUpperCase()} (${sales.length} Bills | Total: RS ${totalRevenue.toFixed(2)})`, 15, y + 16);
+  doc.setTextColor(241, 245, 249);
+  doc.text(`${reportTitle.toUpperCase()} (${sales.length} Bills | Total: RS ${totalRevenue.toFixed(2)})`, textStartX, y + 16);
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
@@ -1411,30 +1581,46 @@ export async function downloadInvoicePDF(
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
   let y = 14;
 
-  const storeName = (settings?.storeName || "OPTIWAY VISION CARE").toUpperCase();
+  const storeName = (settings?.storeName || localStorage.getItem("optiway_store_name") || "OPTIWAY VISION CARE").toUpperCase();
   const storePhone = settings?.phone || "+1 (800) 555-0199";
   const storeEmail = settings?.email || "contact@optiway.com";
   const storeAddress = settings?.address || "742 Vision Avenue, Suite 100, New York, NY 10001";
-  const storeGst = settings?.taxRate ? `GST/Tax Rate: ${settings.taxRate}%` : "Registered Optical Dispensary";
+  const storeGst = settings?.gstNumber ? `GSTIN: ${settings.gstNumber}` : (settings?.taxRate ? `GST/Tax Rate: ${settings.taxRate}%` : "Registered Optical Dispensary");
+  const themeColor = settings?.themeColor || localStorage.getItem("optiway_theme_color") || "#1f6feb";
+  const { r, g, b } = hexToRgb(themeColor);
 
   const invNumber = (sale.saleNumber || "OPT-SL-0000").replace("OPT-SL-", "OPT-INV-");
   const invDate = sale.saleDate || (sale.createdAt ? sale.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10));
 
-  // Top Banner
-  doc.setFillColor(15, 23, 42); // slate-900
+  // Top Banner with Store Theme Color
+  doc.setFillColor(r, g, b);
   doc.roundedRect(12, y, 186, 26, 2, 2, "F");
+
+  let textStartX = 18;
+  const logoUrl = settings?.logoUrl || localStorage.getItem("optiway_logo_url");
+  const logo = await loadImageForPdf(logoUrl);
+  if (logo) {
+    try {
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(15, y + 2, 22, 22, 2, 2, "F");
+      doc.addImage(logo.data, logo.format, 16, y + 3, 20, 20);
+      textStartX = 41;
+    } catch (err) {
+      console.warn("Could not render logo in invoice PDF:", err);
+    }
+  }
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
-  doc.setFontSize(15);
-  doc.text(storeName, 18, y + 9);
+  doc.setFontSize(14);
+  doc.text(storeName, textStartX, y + 9);
 
   doc.setFont("helvetica", "normal");
-  doc.setFontSize(8.5);
-  doc.setTextColor(203, 213, 225);
-  doc.text(`${storeAddress}  •  Ph: ${storePhone}  •  ${storeEmail}`, 18, y + 16);
+  doc.setFontSize(8);
+  doc.setTextColor(241, 245, 249);
+  doc.text(`${storeAddress}  •  Ph: ${storePhone}  •  ${storeEmail}`, textStartX, y + 16);
   doc.setFontSize(7.5);
-  doc.text(storeGst, 18, y + 22);
+  doc.text(storeGst, textStartX, y + 22);
 
   // Right Header Label
   const hasTax = (sale.taxTotal || 0) > 0 || sale.taxType === "with_tax";
@@ -1704,10 +1890,12 @@ export function printInvoiceDirect(
   prescription?: Prescription | null,
   storeSettings?: StoreSettings | null
 ): boolean {
-  const storeName = storeSettings?.storeName || "OPTIWAY VISION CARE";
+  const storeName = storeSettings?.storeName || localStorage.getItem("optiway_store_name") || "OPTIWAY VISION CARE";
   const storeAddress = storeSettings?.address || "742 Vision Avenue, Suite 100, New York, NY 10001";
   const storePhone = storeSettings?.phone || "+1 800-555-0199";
   const storeEmail = storeSettings?.email || "contact@optiway.com";
+  const storeLogo = storeSettings?.logoUrl || localStorage.getItem("optiway_logo_url") || "";
+  const themeColor = storeSettings?.themeColor || localStorage.getItem("optiway_theme_color") || "#1f6feb";
 
   const invNumber = (sale.saleNumber || "OPT-SL-0000").replace("OPT-SL-", "OPT-INV-");
   const invDate = sale.saleDate || (sale.createdAt ? sale.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10));
@@ -1767,7 +1955,7 @@ export function printInvoiceDirect(
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 2px solid #0f172a;
+            border-bottom: 2px solid ${themeColor};
             padding-bottom: 16px;
             margin-bottom: 18px;
           }
@@ -1775,7 +1963,7 @@ export function printInvoiceDirect(
             font-size: 20px;
             font-weight: 900;
             letter-spacing: -0.5px;
-            color: #0f172a;
+            color: ${themeColor};
           }
           .subtext { font-size: 11px; color: #64748b; margin-top: 2px; }
           .tax-badge {
@@ -1806,7 +1994,7 @@ export function printInvoiceDirect(
             margin-bottom: 20px;
           }
           th {
-            background: #0f172a;
+            background: ${themeColor};
             color: #ffffff;
             font-size: 11px;
             font-weight: 800;
@@ -1868,10 +2056,17 @@ export function printInvoiceDirect(
       </head>
       <body>
         <div class="header">
-          <div>
-            <div class="brand-title">${storeName}</div>
-            <div class="subtext">${storeAddress}</div>
-            <div class="subtext">Phone: ${storePhone} | Email: ${storeEmail}</div>
+          <div style="display: flex; align-items: center; gap: 14px;">
+            ${storeLogo ? `
+              <div style="width: 56px; height: 56px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; padding: 2px; flex-shrink: 0;">
+                <img src="${storeLogo}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+              </div>
+            ` : ""}
+            <div>
+              <div class="brand-title">${storeName}</div>
+              <div class="subtext">${storeAddress}</div>
+              <div class="subtext">Phone: ${storePhone} | Email: ${storeEmail}</div>
+            </div>
           </div>
           <div style="text-align: right;">
             <div class="tax-badge">${hasTax ? `TAX INVOICE (${taxRate}% GST)` : "RETAIL INVOICE / BILL OF SUPPLY"}</div>
@@ -1972,9 +2167,10 @@ export function printThermalReceiptDirect(
   sale: Sale,
   storeSettings?: StoreSettings | null
 ): boolean {
-  const storeName = storeSettings?.storeName || "OPTIWAY VISION CARE";
+  const storeName = storeSettings?.storeName || localStorage.getItem("optiway_store_name") || "OPTIWAY VISION CARE";
   const storeAddress = storeSettings?.address || "Vision Care Center";
   const storePhone = storeSettings?.phone || "Store Contact";
+  const storeLogo = storeSettings?.logoUrl || localStorage.getItem("optiway_logo_url") || "";
 
   const invNumber = (sale.saleNumber || "OPT-SL-0000").replace("OPT-SL-", "OPT-INV-");
   const invDate = sale.saleDate || (sale.createdAt ? sale.createdAt.slice(0, 10) : new Date().toISOString().slice(0, 10));
@@ -2023,6 +2219,11 @@ export function printThermalReceiptDirect(
       </head>
       <body>
         <div class="header center">
+          ${storeLogo ? `
+            <div style="margin-bottom: 6px;">
+              <img src="${storeLogo}" alt="Logo" style="max-height: 40px; max-width: 120px; object-fit: contain; filter: grayscale(100%);" />
+            </div>
+          ` : ""}
           <div style="font-size: 14px; font-weight: bold;">${storeName}</div>
           <div>${storeAddress}</div>
           <div>Tel: ${storePhone}</div>
@@ -2086,7 +2287,8 @@ export function printLabJobSlip(
   order: any,
   storeSettings?: StoreSettings | null
 ): boolean {
-  const storeName = storeSettings?.storeName || "OPTIWAY VISION CARE";
+  const storeName = storeSettings?.storeName || localStorage.getItem("optiway_store_name") || "OPTIWAY VISION CARE";
+  const storeLogo = storeSettings?.logoUrl || localStorage.getItem("optiway_logo_url") || "";
   const rx = order.prescriptionDetails;
 
   const html = `
@@ -2116,6 +2318,11 @@ export function printLabJobSlip(
       </head>
       <body>
         <div class="header center">
+          ${storeLogo ? `
+            <div style="margin-bottom: 6px;">
+              <img src="${storeLogo}" alt="Logo" style="max-height: 40px; max-width: 140px; object-fit: contain; filter: grayscale(100%);" />
+            </div>
+          ` : ""}
           <div class="title">${storeName}</div>
           <div style="font-weight: bold; font-size: 13px; margin-top: 2px;">OPTICAL LAB JOB SLIP</div>
           <div>Job Ref: ${order.orderNumber}</div>
@@ -2227,11 +2434,13 @@ export function printAdvanceReceiptDirect(
   prescription?: Prescription | null,
   storeSettings?: StoreSettings | null
 ): boolean {
-  const storeName = storeSettings?.storeName || "OPTIWAY VISION CARE";
+  const storeName = storeSettings?.storeName || localStorage.getItem("optiway_store_name") || "OPTIWAY VISION CARE";
   const storeAddress = storeSettings?.address || "742 Vision Avenue, Suite 100, New York, NY 10001";
   const storePhone = storeSettings?.phone || "+1 800-555-0199";
   const storeEmail = storeSettings?.email || "billing@optiway.com";
   const storeGst = storeSettings?.gstNumber ? `GSTIN: ${storeSettings.gstNumber}` : "";
+  const storeLogo = storeSettings?.logoUrl || localStorage.getItem("optiway_logo_url") || "";
+  const themeColor = storeSettings?.themeColor || localStorage.getItem("optiway_theme_color") || "#1f6feb";
 
   const receiptNum = data.receiptNumber || "OPT-REC-" + Math.floor(1000 + Math.random() * 9000);
   const orderRef = data.orderNumber || data.saleNumber || "OPT-ORD-" + Math.floor(1000 + Math.random() * 9000);
@@ -2307,14 +2516,14 @@ export function printAdvanceReceiptDirect(
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            border-bottom: 2px solid #0f172a;
+            border-bottom: 2px solid ${themeColor};
             padding-bottom: 14px;
             margin-bottom: 16px;
           }
           .brand-title {
             font-size: 19px;
             font-weight: 900;
-            color: #0f172a;
+            color: ${themeColor};
           }
           .subtext { font-size: 11px; color: #64748b; margin-top: 2px; }
           .receipt-badge {
@@ -2347,7 +2556,7 @@ export function printAdvanceReceiptDirect(
             margin-bottom: 16px;
           }
           th {
-            background: #0f172a;
+            background: ${themeColor};
             color: #ffffff;
             font-size: 11px;
             font-weight: 800;
@@ -2422,11 +2631,18 @@ export function printAdvanceReceiptDirect(
       </head>
       <body>
         <div class="header">
-          <div>
-            <div class="brand-title">${storeName}</div>
-            <div class="subtext">${storeAddress}</div>
-            <div class="subtext">Phone: ${storePhone} | Email: ${storeEmail}</div>
-            ${storeGst ? `<div class="subtext" style="font-weight: bold;">${storeGst}</div>` : ""}
+          <div style="display: flex; align-items: center; gap: 14px;">
+            ${storeLogo ? `
+              <div style="width: 56px; height: 56px; border-radius: 8px; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden; background: #fff; padding: 2px; flex-shrink: 0;">
+                <img src="${storeLogo}" alt="Logo" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+              </div>
+            ` : ""}
+            <div>
+              <div class="brand-title">${storeName}</div>
+              <div class="subtext">${storeAddress}</div>
+              <div class="subtext">Phone: ${storePhone} | Email: ${storeEmail}</div>
+              ${storeGst ? `<div class="subtext" style="font-weight: bold;">${storeGst}</div>` : ""}
+            </div>
           </div>
           <div style="text-align: right;">
             <div class="receipt-badge">ADVANCE PAYMENT RECEIPT</div>
@@ -2510,7 +2726,7 @@ export function printAdvanceReceiptDirect(
 /**
  * Download Advance Receipt as PDF
  */
-export function downloadAdvanceReceiptPDF(
+export async function downloadAdvanceReceiptPDF(
   data: {
     receiptNumber?: string;
     saleNumber?: string;
@@ -2528,11 +2744,23 @@ export function downloadAdvanceReceiptPDF(
   },
   prescription?: Prescription | null,
   storeSettings?: StoreSettings | null
-): void {
+): Promise<void> {
+  let settings = storeSettings;
+  if (!settings) {
+    try {
+      settings = await dbService.getSettings();
+    } catch {
+      settings = null;
+    }
+  }
+
   const doc = new jsPDF();
-  const storeName = storeSettings?.storeName || "OPTIWAY VISION CARE";
-  const storeAddress = storeSettings?.address || "742 Vision Avenue, Suite 100, NY 10001";
-  const storePhone = storeSettings?.phone || "+1 800-555-0199";
+  const storeName = (settings?.storeName || localStorage.getItem("optiway_store_name") || "OPTIWAY VISION CARE").toUpperCase();
+  const storeAddress = settings?.address || "742 Vision Avenue, Suite 100, NY 10001";
+  const storePhone = settings?.phone || "+1 800-555-0199";
+  const themeColor = settings?.themeColor || localStorage.getItem("optiway_theme_color") || "#1f6feb";
+  const { r, g, b } = hexToRgb(themeColor);
+
   const receiptNum = data.receiptNumber || "OPT-REC-" + Math.floor(1000 + Math.random() * 9000);
   const orderRef = data.orderNumber || data.saleNumber || "OPT-ORD-" + Math.floor(1000 + Math.random() * 9000);
   const dateStr = data.date || new Date().toISOString().slice(0, 10);
@@ -2540,19 +2768,33 @@ export function downloadAdvanceReceiptPDF(
   const advanceAmount = data.advanceAmount || 0;
   const pendingAmount = Math.max(0, grandTotal - advanceAmount);
 
-  // Header Banner
-  doc.setFillColor(15, 23, 42); // slate-900
+  // Header Banner with theme color
+  doc.setFillColor(r, g, b);
   doc.rect(12, 10, 186, 26, "F");
+
+  let textStartX = 18;
+  const logoUrl = settings?.logoUrl || localStorage.getItem("optiway_logo_url");
+  const logo = await loadImageForPdf(logoUrl);
+  if (logo) {
+    try {
+      doc.setFillColor(255, 255, 255);
+      doc.roundedRect(15, 12, 22, 22, 2, 2, "F");
+      doc.addImage(logo.data, logo.format, 16, 13, 20, 20);
+      textStartX = 41;
+    } catch (err) {
+      console.warn("Could not render logo in advance receipt PDF:", err);
+    }
+  }
 
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(14);
-  doc.text(storeName, 18, 19);
+  doc.text(storeName, textStartX, 19);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(8);
-  doc.setTextColor(203, 213, 225);
-  doc.text(`${storeAddress}  •  Ph: ${storePhone}`, 18, 26);
+  doc.setTextColor(241, 245, 249);
+  doc.text(`${storeAddress}  •  Ph: ${storePhone}`, textStartX, 26);
 
   doc.setFont("helvetica", "bold");
   doc.setFontSize(11);

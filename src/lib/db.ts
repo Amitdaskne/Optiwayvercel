@@ -1,5 +1,6 @@
 import { rtdb } from "./firebase";
 import { ref, get, set, update, push, remove, onValue } from "firebase/database";
+import { applyThemeColor } from "./theme";
 
 // Entity Type Definitions
 export interface Customer {
@@ -1304,6 +1305,7 @@ class DBService {
           if ("storeName" in val || "phone" in val || "address" in val || "taxRate" in val) {
             const merged = { ...defaultSettings, ...val };
             if (typeof merged.taxRate === "string") merged.taxRate = parseFloat(merged.taxRate) || 18;
+            this.syncSettingsToCache(merged);
             return merged;
           }
           // If val was stored under a key
@@ -1311,6 +1313,7 @@ class DBService {
           if (keys.length > 0 && typeof val[keys[0]] === "object" && val[keys[0]] !== null) {
             const merged = { ...defaultSettings, ...val[keys[0]] };
             if (typeof merged.taxRate === "string") merged.taxRate = parseFloat(merged.taxRate) || 18;
+            this.syncSettingsToCache(merged);
             return merged;
           }
         }
@@ -1327,6 +1330,7 @@ class DBService {
         if (parsed && typeof parsed === "object") {
           const merged = { ...defaultSettings, ...parsed };
           if (typeof merged.taxRate === "string") merged.taxRate = parseFloat(merged.taxRate) || 18;
+          this.syncSettingsToCache(merged);
           return merged;
         }
       } catch (err) {
@@ -1344,6 +1348,7 @@ class DBService {
           if ("storeName" in s || "phone" in s || "address" in s || "taxRate" in s) {
             const merged = { ...defaultSettings, ...s };
             if (typeof merged.taxRate === "string") merged.taxRate = parseFloat(merged.taxRate) || 18;
+            this.syncSettingsToCache(merged);
             return merged;
           }
         }
@@ -1352,7 +1357,20 @@ class DBService {
       }
     }
 
+    this.syncSettingsToCache(defaultSettings);
     return defaultSettings;
+  }
+
+  private syncSettingsToCache(settings: StoreSettings) {
+    if (settings.themeColor) {
+      applyThemeColor(settings.themeColor);
+    }
+    if (settings.logoUrl !== undefined) {
+      localStorage.setItem("optiway_logo_url", settings.logoUrl || "");
+    }
+    if (settings.storeName) {
+      localStorage.setItem("optiway_store_name", settings.storeName);
+    }
   }
 
   public async saveSettings(settings: StoreSettings): Promise<void> {
@@ -1362,6 +1380,17 @@ class DBService {
       updatedAt: new Date().toISOString()
     };
 
+    // Apply theme color globally across the application immediately
+    if (payload.themeColor) {
+      applyThemeColor(payload.themeColor);
+    }
+    if (payload.logoUrl !== undefined) {
+      localStorage.setItem("optiway_logo_url", payload.logoUrl || "");
+    }
+    if (payload.storeName) {
+      localStorage.setItem("optiway_store_name", payload.storeName);
+    }
+
     // Update localStorage immediately so changes are 100% instant and persistent across all tabs/windows
     try {
       localStorage.setItem("optiway_settings", JSON.stringify(payload));
@@ -1369,6 +1398,7 @@ class DBService {
       const parsed = JSON.parse(local);
       parsed.settings = payload;
       localStorage.setItem("optiway_local_db", JSON.stringify(parsed));
+      window.dispatchEvent(new CustomEvent("optiway:settings-updated", { detail: payload }));
     } catch (err) {
       console.warn("Error caching settings locally:", err);
     }

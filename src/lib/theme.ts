@@ -51,7 +51,7 @@ export const THEME_COLOR_PRESETS: ThemeColorPreset[] = [
 
 export const DEFAULT_THEME_COLOR = "#1f6feb";
 
-function hexToRgb(hex: string): { r: number; g: number; b: number } {
+export function hexToRgb(hex: string): { r: number; g: number; b: number } {
   let clean = hex.replace("#", "").trim();
   if (clean.length === 3) {
     clean = clean.split("").map(c => c + c).join("");
@@ -67,7 +67,7 @@ function hexToRgb(hex: string): { r: number; g: number; b: number } {
   };
 }
 
-function adjustBrightness(hex: string, percent: number): string {
+export function adjustBrightness(hex: string, percent: number): string {
   const { r, g, b } = hexToRgb(hex);
   const factor = 1 + percent / 100;
   const newR = Math.min(255, Math.max(0, Math.round(r * factor)));
@@ -85,8 +85,8 @@ export function applyThemeColor(hex: string) {
   }
 
   const { r, g, b } = hexToRgb(hex);
-  const hoverHex = adjustBrightness(hex, -15);
-  const activeHex = adjustBrightness(hex, -25);
+  const hoverHex = adjustBrightness(hex, -14);
+  const activeHex = adjustBrightness(hex, -26);
   const root = document.documentElement;
 
   // Set CSS Variables
@@ -106,7 +106,7 @@ export function applyThemeColor(hex: string) {
     // Ignore storage quota errors
   }
 
-  // Dynamic style injection for comprehensive coverage across layout, buttons, links, active tabs
+  // Dynamic style injection for comprehensive coverage across layout, buttons, links, active tabs, badges, cards
   let styleEl = document.getElementById("optiway-dynamic-theme-overrides") as HTMLStyleElement;
   if (!styleEl) {
     styleEl = document.createElement("style");
@@ -121,66 +121,171 @@ export function applyThemeColor(hex: string) {
       --primary-rgb: ${r}, ${g}, ${b};
     }
 
-    /* Core Brand Accents */
-    .bg-\\[\\#1f6feb\\], .bg-blue-600 {
+    /* Core Brand Accents & Solid Backgrounds */
+    .bg-\\[\\#1f6feb\\], 
+    .bg-\\[\\#2563eb\\], 
+    .bg-blue-600, 
+    .bg-blue-700, 
+    .bg-blue-800,
+    #sidebar-brand-badge,
+    #login-brand-badge,
+    .badge-primary,
+    .brand-accent-bg {
       background-color: ${hex} !important;
     }
-    .hover\\:bg-\\[\\#1f6feb\\]:hover, .hover\\:bg-blue-700:hover {
+
+    .hover\\:bg-\\[\\#1f6feb\\]:hover, 
+    .hover\\:bg-blue-700:hover, 
+    .hover\\:bg-blue-800:hover,
+    .hover\\:bg-\\[\\#1a5fca\\]:hover {
       background-color: ${hoverHex} !important;
     }
-    .text-\\[\\#1f6feb\\], .text-blue-600, .text-blue-700 {
+
+    .active\\:bg-blue-800:active,
+    .active\\:bg-blue-900:active {
+      background-color: ${activeHex} !important;
+    }
+
+    /* Text Brand Colors */
+    .text-\\[\\#1f6feb\\], 
+    .text-blue-600, 
+    .text-blue-700, 
+    .text-blue-800, 
+    .text-blue-900,
+    .brand-accent-text {
       color: ${hex} !important;
     }
-    .border-\\[\\#1f6feb\\], .border-blue-600, .border-blue-500 {
+
+    .hover\\:text-\\[\\#1f6feb\\]:hover,
+    .hover\\:text-blue-700:hover,
+    .hover\\:text-blue-800:hover {
+      color: ${hoverHex} !important;
+    }
+
+    /* Border Brand Colors */
+    .border-\\[\\#1f6feb\\], 
+    .border-blue-500, 
+    .border-blue-600, 
+    .border-blue-700 {
       border-color: ${hex} !important;
     }
-    .bg-\\[\\#f0f7ff\\], .bg-blue-50 {
+
+    /* Soft Brand Backgrounds & Highlight Badges */
+    .bg-\\[\\#f0f7ff\\], 
+    .bg-blue-50, 
+    .hover\\:bg-blue-50:hover,
+    .hover\\:bg-\\[\\#f0f7ff\\]:hover {
       background-color: rgba(${r}, ${g}, ${b}, 0.08) !important;
     }
-    .border-blue-200, .border-blue-300 {
-      border-color: rgba(${r}, ${g}, ${b}, 0.25) !important;
-    }
+
     .bg-blue-100 {
-      background-color: rgba(${r}, ${g}, ${b}, 0.16) !important;
+      background-color: rgba(${r}, ${g}, ${b}, 0.15) !important;
+    }
+
+    .bg-blue-200 {
+      background-color: rgba(${r}, ${g}, ${b}, 0.25) !important;
+    }
+
+    .border-blue-100, 
+    .border-blue-200, 
+    .border-blue-300 {
+      border-color: rgba(${r}, ${g}, ${b}, 0.25) !important;
     }
 
     /* Active Tab Highlights & Sidebar selection */
-    .tab-btn.active, .tab-link.active {
+    .tab-btn.active, 
+    .tab-link.active,
+    .tab-btn[data-active="true"] {
       border-color: ${hex} !important;
       color: ${hex} !important;
     }
+
     .tab-btn.active span[class*="bg-blue-100"],
     .tab-link.active span[class*="bg-blue-100"] {
-      background-color: rgba(${r}, ${g}, ${b}, 0.18) !important;
+      background-color: rgba(${r}, ${g}, ${b}, 0.20) !important;
       color: ${hex} !important;
     }
 
     /* Input Focus Rings */
-    input:focus, select:focus, textarea:focus {
+    input:focus, 
+    select:focus, 
+    textarea:focus,
+    .focus\\:ring-blue-500:focus,
+    .focus\\:ring-\\[\\#1f6feb\\]:focus,
+    .focus\\:border-blue-500:focus,
+    .focus\\:border-\\[\\#1f6feb\\]:focus {
       border-color: ${hex} !important;
-      box-shadow: 0 0 0 2px rgba(${r}, ${g}, ${b}, 0.2) !important;
+      box-shadow: 0 0 0 2.5px rgba(${r}, ${g}, ${b}, 0.22) !important;
+      outline: none !important;
     }
 
-    /* Primary Buttons */
-    .btn-primary, button.bg-blue-600 {
+    /* Primary Action Buttons */
+    .btn-primary, 
+    button.bg-blue-600, 
+    a.bg-blue-600,
+    button.bg-\\[\\#1f6feb\\],
+    a.bg-\\[\\#1f6feb\\] {
       background-color: ${hex} !important;
       color: #ffffff !important;
     }
-    .btn-primary:hover, button.bg-blue-600:hover {
+
+    .btn-primary:hover, 
+    button.bg-blue-600:hover, 
+    a.bg-blue-600:hover {
       background-color: ${hoverHex} !important;
     }
-    .btn-primary:active, button.bg-blue-600:active {
+
+    .btn-primary:active, 
+    button.bg-blue-600:active {
       background-color: ${activeHex} !important;
     }
 
-    /* Active Nav Items in layout */
+    /* Active Nav Items in Desktop & Mobile Sidebars */
     #app-sidebar a[class*="border-[#1f6feb]"],
-    #mobile-drawer a[class*="border-[#1f6feb]"] {
-      background-color: rgba(${r}, ${g}, ${b}, 0.08) !important;
+    #mobile-drawer a[class*="border-[#1f6feb]"],
+    #app-sidebar a.border-\\[\\#1f6feb\\],
+    #mobile-drawer a.border-\\[\\#1f6feb\\] {
+      background-color: rgba(${r}, ${g}, ${b}, 0.09) !important;
       color: ${hex} !important;
       border-right-color: ${hex} !important;
     }
+
+    #app-sidebar a[class*="border-[#1f6feb]"] svg,
+    #mobile-drawer a[class*="border-[#1f6feb]"] svg {
+      color: ${hex} !important;
+      stroke: ${hex} !important;
+    }
+
+    /* Mobile Bottom Navigation Bar Active Elements */
+    #mobile-bottom-nav a[class*="text-[#1f6feb]"],
+    #mobile-bottom-nav a.text-blue-600 {
+      color: ${hex} !important;
+    }
+    #mobile-bottom-nav a[class*="text-[#1f6feb]"] svg,
+    #mobile-bottom-nav a.text-blue-600 svg {
+      color: ${hex} !important;
+      stroke: ${hex} !important;
+    }
+
+    /* Form Controls & Checkboxes */
+    input[type="checkbox"]:checked,
+    input[type="radio"]:checked {
+      accent-color: ${hex} !important;
+    }
+
+    /* Selection Highlight */
+    ::selection {
+      background-color: rgba(${r}, ${g}, ${b}, 0.25);
+      color: ${hex};
+    }
   `;
+
+  // Dispatch custom event for immediate dynamic reactivity across layout and modules
+  try {
+    window.dispatchEvent(new CustomEvent("optiway:theme-updated", { detail: { hex, r, g, b } }));
+  } catch {
+    // Ignore in non-window contexts
+  }
 }
 
 /**
@@ -189,14 +294,22 @@ export function applyThemeColor(hex: string) {
 export function initTheme() {
   try {
     const cached = localStorage.getItem("optiway_theme_color");
-    if (cached) {
+    if (cached && cached.startsWith("#")) {
       applyThemeColor(cached);
       return;
+    }
+    const directSettings = localStorage.getItem("optiway_settings");
+    if (directSettings) {
+      const parsed = JSON.parse(directSettings);
+      if (parsed?.themeColor && parsed.themeColor.startsWith("#")) {
+        applyThemeColor(parsed.themeColor);
+        return;
+      }
     }
     const localDb = localStorage.getItem("optiway_local_db");
     if (localDb) {
       const parsed = JSON.parse(localDb);
-      if (parsed?.settings?.themeColor) {
+      if (parsed?.settings?.themeColor && parsed.settings.themeColor.startsWith("#")) {
         applyThemeColor(parsed.settings.themeColor);
         return;
       }

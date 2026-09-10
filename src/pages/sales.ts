@@ -11,6 +11,7 @@ import {
   downloadAdvanceReceiptPDF,
   printThermalReceiptDirect 
 } from "../lib/exportUtils";
+import { sendOrderWhatsAppPrompt } from "../lib/whatsapp";
 
 let customersList: Customer[] = [];
 let productsList: Product[] = [];
@@ -1505,6 +1506,35 @@ function setupFormActionEvents() {
       downloadAdvanceReceiptPDF(lastReceiptData, lastPrescriptionData, activeStoreSettings);
       Toast.show("Advance Receipt PDF downloaded successfully.", "success");
     }
+  });
+
+  // WhatsApp Share Receipt / Order
+  document.getElementById("btn-whatsapp-receipt")?.addEventListener("click", () => {
+    if (!lastReceiptData) {
+      Toast.show("No receipt data to share.", "error");
+      return;
+    }
+    const orderObj: Order = {
+      id: lastReceiptData.orderId || "ORD-" + Date.now(),
+      orderNumber: lastReceiptData.orderNumber || lastReceiptData.saleNumber || "ORD",
+      saleId: lastReceiptData.saleNumber || "",
+      customerId: lastReceiptData.customerId || "",
+      customerName: lastReceiptData.customerName || "Customer",
+      customerMobile: lastReceiptData.customerMobile || "",
+      orderDate: lastReceiptData.date || new Date().toISOString().slice(0, 10),
+      expectedDeliveryDate: lastReceiptData.deliveryDate || "",
+      status: (lastReceiptData.pendingAmount && lastReceiptData.pendingAmount > 0) ? "Pending" : "Completed",
+      paymentStatus: (lastReceiptData.pendingAmount && lastReceiptData.pendingAmount > 0) ? "Advance-paid" : "Fully-paid",
+      items: lastReceiptData.items || [],
+      subtotal: lastReceiptData.subtotal || 0,
+      discountTotal: lastReceiptData.discountTotal || 0,
+      grandTotal: lastReceiptData.grandTotal || 0,
+      advancePaid: lastReceiptData.advanceAmount || 0,
+      pendingBalance: lastReceiptData.pendingAmount || 0,
+      notes: lastReceiptData.notes || "",
+      createdAt: new Date().toISOString()
+    };
+    sendOrderWhatsAppPrompt(orderObj, lastPrescriptionData, activeStoreSettings);
   });
 
   // Detailed Reports

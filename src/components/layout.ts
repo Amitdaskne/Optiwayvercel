@@ -1,6 +1,7 @@
 import { getCurrentUser, logoutUser, UserProfile } from "../lib/auth";
 import { getIconSvg } from "../lib/icons";
 import { initTheme } from "../lib/theme";
+import { dbService } from "../lib/db";
 
 interface NavItem {
   key: string;
@@ -26,6 +27,56 @@ const navItems: NavItem[] = [
   { key: "settings", label: "Store Settings", href: "settings.html", iconName: "settings" },
 ];
 
+function getBrandInfo(): { logoUrl: string; storeName: string } {
+  let logoUrl = "";
+  let storeName = "OPTIWAY";
+  try {
+    logoUrl = localStorage.getItem("optiway_logo_url") || "";
+    storeName = localStorage.getItem("optiway_store_name") || "OPTIWAY";
+    if (!logoUrl || storeName === "OPTIWAY") {
+      const localDb = localStorage.getItem("optiway_local_db");
+      if (localDb) {
+        const parsed = JSON.parse(localDb);
+        if (parsed?.settings?.logoUrl) logoUrl = parsed.settings.logoUrl;
+        if (parsed?.settings?.storeName) storeName = parsed.settings.storeName;
+      }
+    }
+  } catch {
+    // Ignore cache error
+  }
+  return { logoUrl, storeName };
+}
+
+function buildBrandHeaderHtml(isMobile = false): string {
+  const { logoUrl, storeName } = getBrandInfo();
+  const initial = (storeName || "O").charAt(0).toUpperCase();
+
+  if (logoUrl) {
+    return `
+      <div class="flex items-center gap-2.5 overflow-hidden min-w-0">
+        <div class="w-9 h-9 rounded-lg bg-white border border-slate-200 overflow-hidden flex items-center justify-center p-0.5 shadow-2xs shrink-0">
+          <img src="${logoUrl}" alt="${storeName}" class="w-full h-full object-contain" />
+        </div>
+        <div class="min-w-0 flex-1">
+          <span class="text-sm font-bold tracking-tight text-[#1f6feb] block truncate leading-tight">${storeName}</span>
+          <span class="text-[10px] text-slate-500 block truncate font-medium">Optical Store</span>
+        </div>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="flex items-center gap-2.5 overflow-hidden min-w-0">
+      <div id="${isMobile ? 'mobile' : 'sidebar'}-brand-badge" class="w-8 h-8 rounded-lg bg-[#1f6feb] flex items-center justify-center text-white font-bold text-base shadow-2xs shrink-0">
+        ${initial}
+      </div>
+      <div class="min-w-0 flex-1">
+        <span class="text-base font-bold tracking-tight text-[#1f6feb] block truncate leading-tight">${storeName}</span>
+      </div>
+    </div>
+  `;
+}
+
 export function renderAppLayout(activeKey: string, pageTitle: string, user: UserProfile) {
   const sidebarContainer = document.getElementById("app-sidebar");
   const headerContainer = document.getElementById("app-header");
@@ -40,6 +91,37 @@ export function renderAppLayout(activeKey: string, pageTitle: string, user: User
 
   // Setup mobile sidebar drawer toggle
   setupMobileDrawerEvents();
+
+  // Listen for dynamic settings updates to refresh brand branding live
+  window.addEventListener("optiway:settings-updated", () => {
+    refreshBrandElements();
+  });
+
+  // Background refresh of store settings from database to guarantee fresh logo & color
+  dbService.getSettings().then((settings) => {
+    if (settings) {
+      refreshBrandElements();
+    }
+  }).catch(() => {});
+}
+
+function refreshBrandElements() {
+  const desktopContainer = document.getElementById("sidebar-brand-container");
+  if (desktopContainer) {
+    desktopContainer.innerHTML = buildBrandHeaderHtml(false);
+  }
+  const mobileContainer = document.getElementById("mobile-brand-container");
+  if (mobileContainer) {
+    mobileContainer.innerHTML = buildBrandHeaderHtml(true);
+  }
+  const headerBadge = document.getElementById("header-store-badge");
+  if (headerBadge) {
+    const { logoUrl, storeName } = getBrandInfo();
+    headerBadge.innerHTML = `
+      ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="w-4 h-4 object-contain rounded-full" />` : `<span class="w-2 h-2 rounded-full bg-[#1f6feb] animate-pulse"></span>`}
+      <span class="truncate max-w-[170px]">${storeName || "Main Branch"}</span>
+    `;
+  }
 }
 
 function buildSidebarHtml(activeKey: string, user: UserProfile): string {
@@ -63,14 +145,9 @@ function buildSidebarHtml(activeKey: string, user: UserProfile): string {
   return `
     <!-- Desktop Sidebar -->
     <aside class="hidden lg:flex flex-col w-[240px] bg-white border-r border-[#e5e7eb] shrink-0 h-screen sticky top-0 z-30 select-none">
-      <!-- Brand Header -->
-      <div class="h-16 flex items-center px-6 border-b border-[#e5e7eb] gap-3">
-        <div class="w-8 h-8 rounded-lg bg-[#1f6feb] flex items-center justify-center text-white font-bold text-base shadow-2xs">
-          O
-        </div>
-        <div>
-          <span class="text-lg font-bold tracking-tight text-[#1f6feb] block leading-none">OPTIWAY</span>
-        </div>
+      <!-- Brand Header with Store Logo or Badge -->
+      <div id="sidebar-brand-container" class="h-16 flex items-center px-4 border-b border-[#e5e7eb] gap-3 overflow-hidden">
+        ${buildBrandHeaderHtml(false)}
       </div>
 
       <!-- Navigation links -->
@@ -100,14 +177,11 @@ function buildSidebarHtml(activeKey: string, user: UserProfile): string {
     <div id="mobile-drawer" class="fixed inset-0 z-50 lg:hidden hidden">
       <div id="mobile-overlay" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs transition-opacity cursor-pointer"></div>
       <div class="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-white flex flex-col z-50 border-r border-[#e5e7eb] shadow-2xl animate-in slide-in-from-left duration-200">
-        <div class="h-16 flex items-center justify-between px-5 border-b border-[#e5e7eb]">
-          <div class="flex items-center gap-2.5">
-            <div class="w-8 h-8 rounded-lg bg-[#1f6feb] flex items-center justify-center text-white font-bold text-base shadow-2xs">
-              O
-            </div>
-            <span class="text-lg font-bold tracking-tight text-[#1f6feb]">OPTIWAY</span>
+        <div class="h-16 flex items-center justify-between px-4 border-b border-[#e5e7eb]">
+          <div id="mobile-brand-container" class="min-w-0 flex-1 mr-2">
+            ${buildBrandHeaderHtml(true)}
           </div>
-          <button id="btn-close-mobile-drawer" class="p-2.5 text-[#6b7280] hover:text-[#111827] hover:bg-slate-100 rounded-lg cursor-pointer" aria-label="Close menu">
+          <button id="btn-close-mobile-drawer" class="p-2 text-[#6b7280] hover:text-[#111827] hover:bg-slate-100 rounded-lg cursor-pointer shrink-0" aria-label="Close menu">
             ${getIconSvg("x", "w-5 h-5")}
           </button>
         </div>
@@ -158,6 +232,7 @@ function buildSidebarHtml(activeKey: string, user: UserProfile): string {
 
 function buildHeaderHtml(pageTitle: string, user: UserProfile): string {
   const currentDate = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  const { logoUrl, storeName } = getBrandInfo();
 
   return `
     <header class="h-16 bg-white border-b border-[#e5e7eb] px-4 sm:px-6 flex items-center justify-between sticky top-0 z-20 shadow-2xs select-none">
@@ -173,9 +248,9 @@ function buildHeaderHtml(pageTitle: string, user: UserProfile): string {
       </div>
 
       <div class="flex items-center gap-3">
-        <div class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#f0f7ff] border border-[#1f6feb]/20 text-[#1f6feb] text-xs font-medium">
-          <span class="w-2 h-2 rounded-full bg-[#1f6feb] animate-pulse"></span>
-          <span>Main Branch Terminal</span>
+        <div id="header-store-badge" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#f0f7ff] border border-[#1f6feb]/20 text-[#1f6feb] text-xs font-medium">
+          ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="w-4 h-4 object-contain rounded-full" />` : `<span class="w-2 h-2 rounded-full bg-[#1f6feb] animate-pulse"></span>`}
+          <span class="truncate max-w-[170px]">${storeName || "Main Branch"}</span>
         </div>
 
         <div class="flex items-center gap-2 pl-3 border-l border-[#e5e7eb]">

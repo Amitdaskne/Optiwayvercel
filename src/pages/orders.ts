@@ -2,6 +2,7 @@ import { initAuthGuard } from "../lib/auth";
 import { renderAppLayout, Toast } from "../components/layout";
 import { dbService, Order, Customer, Prescription, Sale, StoreSettings, Receipt, ensureArray, formatDateStr, ensureDateString } from "../lib/db";
 import { printLabJobSlip, downloadAdvanceReceiptPDF, downloadInvoicePDF, printInvoiceDirect } from "../lib/exportUtils";
+import { sendOrderWhatsAppPrompt, sendSaleWhatsAppPrompt } from "../lib/whatsapp";
 
 let allOrders: Order[] = [];
 let selectedOrder: Order | null = null;
@@ -173,6 +174,10 @@ function renderDesktopTable(orders: Order[]) {
               <span>Confirm Sale</span>
             </button>
           ` : ""}
+          <button class="btn-whatsapp-order px-2.5 py-1 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold rounded-lg text-[11px] transition-colors inline-flex items-center gap-1 cursor-pointer active:scale-95 shadow-2xs" data-id="${o.id}" title="Send Order Details via WhatsApp">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>WhatsApp</span>
+          </button>
           <button class="btn-download-advance-pdf px-2.5 py-1 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold rounded-lg text-[11px] transition-colors inline-flex items-center gap-1 cursor-pointer active:scale-95" data-id="${o.id}" title="Download Advance Receipt PDF">
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
             <span>Receipt PDF</span>
@@ -246,6 +251,10 @@ function renderMobileCards(orders: Order[]) {
               <span>Confirm Sale</span>
             </button>
           ` : ""}
+          <button class="btn-whatsapp-order flex-1 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-300 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95 shadow-2xs" data-id="${o.id}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            <span>WhatsApp</span>
+          </button>
           <button class="btn-download-advance-pdf flex-1 py-2 bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-300 font-bold rounded-xl text-xs transition-colors flex items-center justify-center gap-1.5 cursor-pointer active:scale-95" data-id="${o.id}">
             <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/></svg>
             <span>Receipt PDF</span>
@@ -262,6 +271,15 @@ function renderMobileCards(orders: Order[]) {
 }
 
 function attachTableEventListeners(parentEl: HTMLElement) {
+  parentEl.querySelectorAll(".btn-whatsapp-order").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const id = btn.getAttribute("data-id");
+      const match = allOrders.find(o => o.id === id);
+      if (match) sendOrderWhatsAppPrompt(match, storeSettings);
+    });
+  });
+
   parentEl.querySelectorAll(".btn-manage-order").forEach(btn => {
     btn.addEventListener("click", () => {
       const id = btn.getAttribute("data-id");
@@ -693,6 +711,16 @@ function setupEvents() {
   });
 
   // Modal controls
+  document.getElementById("btn-modal-order-whatsapp")?.addEventListener("click", () => {
+    if (selectedOrder) sendOrderWhatsAppPrompt(selectedOrder, storeSettings);
+  });
+  document.getElementById("btn-inv-confirm-whatsapp")?.addEventListener("click", () => {
+    if (confirmedSaleForDownload) {
+      sendSaleWhatsAppPrompt(confirmedSaleForDownload, confirmedRxForDownload, storeSettings);
+    } else if (selectedOrder) {
+      sendOrderWhatsAppPrompt(selectedOrder, storeSettings);
+    }
+  });
   document.getElementById("btn-close-ord-modal")?.addEventListener("click", closeOrderDetailModal);
   document.getElementById("btn-save-order-status")?.addEventListener("click", saveOrderStatus);
   document.getElementById("btn-modal-confirm-sale")?.addEventListener("click", () => {
