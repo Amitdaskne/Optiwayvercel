@@ -10,7 +10,7 @@
  * ============================================================================
  */
 
-export const GEMINI_API_KEY: string = "";
+export const GEMINI_API_KEY: string = "AQ.Ab8RN6LVtOcQn9I8rlpCXpk5VU0Jryl38KqdNDXmOYc6zmZInA";
 
 /**
  * Helper function to retrieve the Gemini API key from environment variables
