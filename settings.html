@@ -110,15 +110,29 @@
                   </div>
                 </div>
 
-                <!-- Cloudinary Logo Upload -->
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2">
+                <!-- Store Branding PNG Logo Upload -->
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 space-y-2.5">
                   <div class="flex items-center justify-between">
-                    <label class="block font-bold text-slate-800">Store Branding Logo</label>
-                    <span class="text-[10px] text-slate-500">Appears on A4 invoices, job slips, and receipts</span>
+                    <div>
+                      <label class="block font-bold text-slate-800 text-xs sm:text-sm">Store Branding Logo (PNG Only)</label>
+                      <p class="text-[11px] text-slate-500">Appears on Dashboard, invoices, receipts, and optical prescriptions</p>
+                    </div>
+                    <span class="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-1 rounded-md border border-emerald-200 shadow-2xs">
+                      PNG Format Only (.png)
+                    </span>
                   </div>
-                  <input type="file" id="set-logo-file" accept="image/*" class="w-full text-xs text-slate-500 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
-                  <input type="text" id="set-logo-url" placeholder="Or enter direct logo URL" class="w-full px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white font-mono text-[11px]" />
-                  <div id="set-logo-progress" class="hidden text-[10px] text-blue-600 font-bold">Uploading logo to Cloudinary...</div>
+
+                  <div class="space-y-2">
+                    <input type="file" id="set-logo-file" accept=".png,image/png" class="w-full text-xs text-slate-600 file:mr-3 file:py-1.5 file:px-3 file:rounded-md file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-700 cursor-pointer" />
+                    <div class="flex items-center gap-2">
+                      <input type="text" id="set-logo-url" placeholder="Or enter direct PNG logo URL / data URI" class="flex-1 px-3 py-2 border border-slate-300 rounded-lg outline-none bg-white font-mono text-[11px]" />
+                      <button type="button" id="btn-clear-logo" class="px-2.5 py-2 text-xs font-semibold text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 cursor-pointer hidden" title="Remove current logo">
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                  <div id="set-logo-info" class="text-[11px] text-slate-600 font-medium hidden"></div>
+                  <div id="set-logo-progress" class="hidden text-[10px] text-blue-600 font-bold">Uploading PNG logo...</div>
                 </div>
 
                 <div class="pt-2 flex items-center gap-3">
@@ -171,15 +185,16 @@
                 <div id="gemini-test-result" class="hidden text-[11px] p-2.5 rounded-lg font-medium"></div>
               </div>
 
-              <!-- Live Invoice Header Preview -->
+              <!-- Live Branding & Header Preview -->
               <div class="bg-white p-5 rounded-xl border border-slate-200 shadow-2xs space-y-3">
                 <div class="flex items-center justify-between border-b border-slate-100 pb-2">
-                  <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Live Invoice Header Preview</h3>
+                  <h3 class="font-bold text-slate-900 text-xs uppercase tracking-wider">Live Branding & Header Preview</h3>
                   <span class="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold border border-blue-100">Live Sync</span>
                 </div>
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-1">
-                  <div id="preview-logo-box" class="hidden mb-2">
-                    <img id="preview-logo-img" src="" alt="Store Logo" class="h-10 mx-auto object-contain" />
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-center space-y-2">
+                  <div id="preview-logo-box" class="hidden p-2 bg-white rounded-xl border border-slate-200 shadow-2xs max-w-xs mx-auto">
+                    <img id="preview-logo-img" src="" alt="Store Logo" class="max-h-16 max-w-full mx-auto w-auto h-auto object-contain" />
+                    <p id="preview-logo-meta" class="text-[9.5px] text-slate-500 font-mono mt-1"></p>
                   </div>
                   <h4 id="preview-store-name" class="text-sm font-black text-slate-900">OPTIWAY VISION CARE</h4>
                   <p id="preview-store-address" class="text-[10.5px] text-slate-500 font-medium">742 Vision Avenue, Suite 100, New York, NY 10001</p>
@@ -187,6 +202,24 @@
                   <p id="preview-store-gst" class="text-[10px] text-blue-700 font-mono font-bold hidden">GSTIN: —</p>
                 </div>
               </div>
+              <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
+                <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-3 uppercase tracking-wider">Account & Session</h3>
+
+                <div class="space-y-3">
+                  <div class="p-3 bg-slate-50 border border-slate-200 rounded-lg flex items-center justify-between">
+                    <div>
+                      <p class="text-xs font-bold text-slate-800">Authorized Terminal Owner</p>
+                      <p class="text-[11px] font-mono text-slate-500">amitdaskishanganj@gmail.com</p>
+                    </div>
+                    <span class="px-2 py-0.5 bg-emerald-50 text-emerald-700 text-[10px] font-bold rounded-full border border-emerald-200">Active</span>
+                  </div>
+                  <button id="btn-settings-logout" type="button" class="w-full py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-xs rounded-lg border border-rose-200 transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    <span>Sign Out / Logout</span>
+                  </button>
+                </div>
+              </div>
+
               <div class="bg-white p-6 rounded-xl border border-slate-200 shadow-2xs space-y-4">
                 <h3 class="font-bold text-slate-900 text-sm border-b border-slate-100 pb-3 uppercase tracking-wider">Database & System Actions</h3>
 

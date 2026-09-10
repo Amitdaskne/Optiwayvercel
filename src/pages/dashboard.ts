@@ -1,4 +1,4 @@
-import { initAuthGuard } from "../lib/auth";
+import { initAuthGuard, logoutUser } from "../lib/auth";
 import { renderAppLayout, Toast } from "../components/layout";
 import { dbService, Sale, Order, Customer, Product, Expense } from "../lib/db";
 import { generateTodaySalesReportCSV, downloadCSV, downloadTodayDetailedPDFReport } from "../lib/exportUtils";
@@ -6,9 +6,73 @@ import { generateTodaySalesReportCSV, downloadCSV, downloadTodayDetailedPDFRepor
 initAuthGuard({
   onUserReady: async (user) => {
     renderAppLayout("dashboard", "Dashboard Overview", user);
+    renderDashboardStoreBranding();
     await loadDashboardMetrics();
   }
 });
+
+// Real-time branding synchronization across dashboard
+window.addEventListener("optiway:settings-updated", () => {
+  renderDashboardStoreBranding();
+});
+
+async function renderDashboardStoreBranding() {
+  try {
+    const settings = await dbService.getSettings();
+    const storedLogo = localStorage.getItem("optiway_logo_url") || "";
+    const storedName = localStorage.getItem("optiway_store_name") || "";
+
+    const logoUrl = settings?.logoUrl || storedLogo;
+    const storeName = settings?.storeName || storedName || "OPTIWAY VISION CARE";
+    const address = settings?.address || "742 Vision Avenue, Suite 100, New York, NY 10001";
+    const phone = settings?.phone || "+1 800-555-0199";
+    const email = settings?.email || "contact@optiway.com";
+    const gst = settings?.gstNumber || "";
+
+    const logoImg = document.getElementById("dash-store-logo") as HTMLImageElement | null;
+    const logoFallback = document.getElementById("dash-logo-fallback");
+    const nameEl = document.getElementById("dash-store-name");
+    const addressEl = document.getElementById("dash-store-address");
+    const phoneEl = document.getElementById("dash-store-phone");
+    const emailEl = document.getElementById("dash-store-email");
+    const gstEl = document.getElementById("dash-store-gst");
+
+    if (nameEl) nameEl.innerText = storeName.toUpperCase();
+    if (addressEl) addressEl.innerText = address;
+    if (phoneEl) phoneEl.innerText = `Ph: ${phone}`;
+    if (emailEl) emailEl.innerText = email;
+
+    if (gstEl) {
+      if (gst) {
+        gstEl.innerText = `GSTIN: ${gst}`;
+        gstEl.classList.remove("hidden");
+      } else {
+        gstEl.classList.add("hidden");
+      }
+    }
+
+    if (logoImg && logoFallback) {
+      if (logoUrl) {
+        logoImg.src = logoUrl;
+        logoImg.onload = () => {
+          logoImg.classList.remove("hidden");
+          logoFallback.classList.add("hidden");
+        };
+        logoImg.onerror = () => {
+          logoImg.classList.add("hidden");
+          logoFallback.classList.remove("hidden");
+          logoFallback.innerText = (storeName || "O").charAt(0).toUpperCase();
+        };
+      } else {
+        logoImg.classList.add("hidden");
+        logoFallback.classList.remove("hidden");
+        logoFallback.innerText = (storeName || "O").charAt(0).toUpperCase();
+      }
+    }
+  } catch (err) {
+    console.warn("Could not load store branding on dashboard:", err);
+  }
+}
 
 async function loadDashboardMetrics() {
   try {
@@ -139,6 +203,7 @@ async function loadDashboardMetrics() {
     document.getElementById("btn-dash-download-today-pdf")?.addEventListener("click", handleDownloadTodayPDF);
     document.getElementById("btn-dash-download-today-icon")?.addEventListener("click", handleDownloadTodayPDF);
     document.getElementById("btn-dash-download-today")?.addEventListener("click", handleDownloadTodayCSV);
+    document.getElementById("btn-dash-logout")?.addEventListener("click", () => logoutUser());
 
   } catch (err) {
     console.error("Failed to load dashboard metrics:", err);

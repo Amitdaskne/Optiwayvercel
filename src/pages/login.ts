@@ -1,7 +1,6 @@
 import { 
   initAuthGuard, 
   loginWithEmail, 
-  loginWithGoogle, 
   registerAuthorizedOwner, 
   sendOwnerPasswordReset, 
   AUTHORIZED_OWNER_EMAIL 
@@ -17,8 +16,6 @@ const errorAlert = document.getElementById("login-error-alert") as HTMLDivElemen
 const successAlert = document.getElementById("login-success-alert") as HTMLDivElement;
 const submitBtn = document.getElementById("btn-login-submit") as HTMLButtonElement;
 const submitText = document.getElementById("btn-submit-text") as HTMLSpanElement;
-const googleBtn = document.getElementById("btn-google-login") as HTMLButtonElement;
-const googleText = document.getElementById("btn-google-text") as HTMLSpanElement;
 const togglePasswordBtn = document.getElementById("btn-toggle-password") as HTMLButtonElement;
 const forgotPasswordBtn = document.getElementById("btn-forgot-password") as HTMLButtonElement;
 const createAccountToggle = document.getElementById("btn-create-account-toggle") as HTMLButtonElement;
@@ -42,7 +39,7 @@ createAccountToggle?.addEventListener("click", () => {
     if (createAccountToggle) createAccountToggle.innerText = "Back to Sign In";
     if (passwordInput) passwordInput.placeholder = "Create new password (min 6 chars)";
   } else {
-    if (submitText) submitText.innerText = "Sign In with Firebase";
+    if (submitText) submitText.innerText = "Sign In";
     if (createAccountToggle) createAccountToggle.innerText = "Create / Set Password";
     if (passwordInput) passwordInput.placeholder = "Enter your password";
   }
@@ -52,28 +49,6 @@ createAccountToggle?.addEventListener("click", () => {
 togglePasswordBtn?.addEventListener("click", () => {
   if (passwordInput) {
     passwordInput.type = passwordInput.type === "password" ? "text" : "password";
-  }
-});
-
-// Google Sign In handler
-googleBtn?.addEventListener("click", async () => {
-  hideAlerts();
-  if (googleBtn) googleBtn.disabled = true;
-  if (googleText) googleText.innerText = "Signing in with Google...";
-
-  try {
-    const result = await loginWithGoogle();
-    if (result.success) {
-      showSuccess("Google Sign-In successful! Redirecting to terminal...");
-      window.location.replace("dashboard.html");
-    } else {
-      showError(result.message || "Google authentication failed. Please verify your account.");
-    }
-  } catch (err: any) {
-    showError(err.message || "Failed to sign in with Google.");
-  } finally {
-    if (googleBtn) googleBtn.disabled = false;
-    if (googleText) googleText.innerText = "Sign in with Google";
   }
 });
 
@@ -133,7 +108,7 @@ loginForm?.addEventListener("submit", async (e) => {
     } else {
       showError(result.message || "Failed to sign in. Please verify your password.");
       if (submitBtn) submitBtn.disabled = false;
-      if (submitText) submitText.innerText = "Sign In with Firebase";
+      if (submitText) submitText.innerText = "Sign In";
     }
   }
 });

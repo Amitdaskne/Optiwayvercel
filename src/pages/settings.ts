@@ -1,4 +1,4 @@
-import { initAuthGuard } from "../lib/auth";
+import { initAuthGuard, logoutUser } from "../lib/auth";
 import { renderAppLayout, Toast } from "../components/layout";
 import { dbService, StoreSettings } from "../lib/db";
 import { uploadImageToCloudinary } from "../lib/cloudinary";
@@ -140,11 +140,21 @@ function updateLivePreview() {
   }
 
   if (previewLogoBox && previewLogoImg) {
+    const clearBtn = document.getElementById("btn-clear-logo");
+    const metaEl = document.getElementById("preview-logo-meta");
     if (logoUrl) {
       previewLogoImg.src = logoUrl;
       previewLogoBox.classList.remove("hidden");
+      if (clearBtn) clearBtn.classList.remove("hidden");
+      previewLogoImg.onload = () => {
+        if (metaEl) {
+          metaEl.innerText = `${previewLogoImg.naturalWidth} × ${previewLogoImg.naturalHeight} px • PNG Format (Original Quality)`;
+        }
+      };
     } else {
       previewLogoBox.classList.add("hidden");
+      if (clearBtn) clearBtn.classList.add("hidden");
+      if (metaEl) metaEl.innerText = "";
     }
   }
 }
@@ -153,12 +163,21 @@ function setupEvents() {
   const logoFile = document.getElementById("set-logo-file") as HTMLInputElement;
   const logoUrlInput = document.getElementById("set-logo-url") as HTMLInputElement;
   const progress = document.getElementById("set-logo-progress")!;
+  const clearLogoBtn = document.getElementById("btn-clear-logo");
   const saveBtn = document.getElementById("btn-save-settings") as HTMLButtonElement;
   const saveText = document.getElementById("btn-save-text");
   const statusMsg = document.getElementById("save-status-msg");
   const colorPicker = document.getElementById("set-custom-theme-picker") as HTMLInputElement;
   const hexInput = document.getElementById("set-theme-hex-input") as HTMLInputElement;
   const resetThemeBtn = document.getElementById("btn-reset-theme-default");
+
+  // Clear logo button
+  clearLogoBtn?.addEventListener("click", () => {
+    if (logoUrlInput) logoUrlInput.value = "";
+    if (logoFile) logoFile.value = "";
+    updateLivePreview();
+    Toast.show("Store logo removed. Save to apply.", "info");
+  });
 
   // Real-time Live Preview binding
   const watchInputs = [
@@ -191,22 +210,46 @@ function setupEvents() {
 
   logoFile?.addEventListener("change", async () => {
     if (!logoFile.files || logoFile.files.length === 0) return;
+    const file = logoFile.files[0];
+
+    // Strict PNG Format Check: "Store branding logo png hi use hoga"
+    const isPng = file.type === "image/png" || file.name.toLowerCase().endsWith(".png");
+    if (!isPng) {
+      Toast.show("Store branding logo sirf PNG (.png) format me hi use hoga. Kripya valid PNG file select karein.", "error");
+      logoFile.value = "";
+      return;
+    }
 
     progress.classList.remove("hidden");
-    progress.innerText = "Uploading logo to Cloudinary...";
+    progress.innerText = "Reading PNG logo without resizing...";
 
+    // 1. Immediately preserve original, uncompressed PNG bytes via FileReader (Zero loss, no resizing)
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        logoUrlInput.value = dataUrl;
+        updateLivePreview();
+      }
+    };
+    reader.readAsDataURL(file);
+
+    // 2. Also upload the untouched PNG file to Cloudinary in background for persistent hosting
     try {
-      const url = await uploadImageToCloudinary(logoFile.files[0], (pct) => {
-        progress.innerText = `Uploading logo... ${pct}%`;
+      progress.innerText = "Uploading PNG logo...";
+      const url = await uploadImageToCloudinary(file, (pct) => {
+        progress.innerText = `Uploading PNG logo... ${pct}%`;
       });
-      logoUrlInput.value = url;
-      progress.innerText = "Logo uploaded successfully!";
-      updateLivePreview();
-      Toast.show("Logo uploaded successfully.", "success");
+      if (url) {
+        logoUrlInput.value = url;
+        progress.innerText = "PNG Logo uploaded & original aspect ratio preserved!";
+        updateLivePreview();
+        Toast.show("PNG Logo uploaded successfully with 100% resolution preserved.", "success");
+      }
     } catch (err: any) {
-      console.error(err);
-      progress.innerText = "Upload failed.";
-      Toast.show(err.message || "Failed to upload logo.", "error");
+      console.warn("Cloudinary upload failed, using local high-resolution PNG data URI:", err);
+      progress.innerText = "High-res PNG logo loaded locally (no resize).";
+      Toast.show("PNG logo loaded (original resolution preserved).", "success");
     }
   });
 
@@ -233,6 +276,10 @@ function setupEvents() {
       };
 
       await dbService.saveSettings(payload);
+      localStorage.setItem("optiway_logo_url", payload.logoUrl || "");
+      localStorage.setItem("optiway_store_name", payload.storeName || "");
+      window.dispatchEvent(new CustomEvent("optiway:settings-updated", { detail: payload }));
+
       applyThemeColor(activeThemeColor);
       updateLivePreview();
 
@@ -241,7 +288,7 @@ function setupEvents() {
         setTimeout(() => statusMsg.classList.add("hidden"), 4000);
       }
 
-      Toast.show(`Store details & theme color updated!`, "success");
+      Toast.show(`Store branding & PNG logo saved successfully!`, "success");
     } catch (err: any) {
       console.error("Save settings failed:", err);
       Toast.show("Failed to update store settings.", "error");
@@ -331,6 +378,11 @@ function setupEvents() {
     } finally {
       if (testKeyText) testKeyText.innerText = "Test AI Connection";
     }
+  });
+
+  // Settings Logout Handler
+  document.getElementById("btn-settings-logout")?.addEventListener("click", () => {
+    logoutUser();
   });
 }
 

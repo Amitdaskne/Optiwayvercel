@@ -65,11 +65,41 @@ function populateSaleSelect() {
 }
 
 async function renderInvoice(sale: Sale) {
-  // Store info
+  // Store info & logo
+  const logoUrl = storeSettings?.logoUrl || localStorage.getItem("optiway_logo_url");
+  const logoImg = document.getElementById("inv-store-logo") as HTMLImageElement | null;
+  const logoFallback = document.getElementById("inv-logo-fallback");
+  const storeGst = document.getElementById("inv-store-gst");
+
   if (storeSettings) {
     document.getElementById("inv-store-name")!.innerText = storeSettings.storeName || "OPTIWAY VISION CARE";
     document.getElementById("inv-store-address")!.innerText = storeSettings.address || "742 Vision Avenue, Suite 100, NY";
     document.getElementById("inv-store-contact")!.innerText = `Phone: ${storeSettings.phone || "+1 800-555-0199"} | Email: ${storeSettings.email || "contact@optiway.com"}`;
+    if (storeGst) {
+      if (storeSettings.gstNumber) {
+        storeGst.innerText = `GSTIN: ${storeSettings.gstNumber}`;
+        storeGst.classList.remove("hidden");
+      } else {
+        storeGst.classList.add("hidden");
+      }
+    }
+  }
+
+  if (logoImg && logoFallback) {
+    if (logoUrl) {
+      logoImg.src = logoUrl;
+      logoImg.onload = () => {
+        logoImg.classList.remove("hidden");
+        logoFallback.classList.add("hidden");
+      };
+      logoImg.onerror = () => {
+        logoImg.classList.add("hidden");
+        logoFallback.classList.remove("hidden");
+      };
+    } else {
+      logoImg.classList.add("hidden");
+      logoFallback.classList.remove("hidden");
+    }
   }
 
   // Invoice headers

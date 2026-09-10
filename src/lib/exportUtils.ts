@@ -80,6 +80,33 @@ export async function loadImageForPdf(
   });
 }
 
+/**
+ * Calculates proportional dimensions for rendering a logo in PDF without squishing,
+ * stretching, or distorting its natural aspect ratio.
+ */
+export function calcProportionalLogo(
+  logo: { width: number; height: number },
+  maxW: number = 32,
+  maxH: number = 20
+): { w: number; h: number; boxW: number; boxH: number } {
+  const width = logo.width > 0 ? logo.width : 100;
+  const height = logo.height > 0 ? logo.height : 100;
+  const aspect = width / height;
+
+  let w = maxW;
+  let h = maxW / aspect;
+
+  if (h > maxH) {
+    h = maxH;
+    w = maxH * aspect;
+  }
+
+  const boxW = Math.max(Math.round(w + 3), 22);
+  const boxH = Math.max(Math.round(h + 3), 22);
+
+  return { w, h, boxW, boxH };
+}
+
 export interface DailyReportMetrics {
   dateStr: string;
   totalSalesCount: number;
@@ -217,10 +244,15 @@ export async function downloadTodayDetailedPDFReport(
   const logo = await loadImageForPdf(logoUrl);
   if (logo) {
     try {
+      const p = calcProportionalLogo(logo, 30, 18);
+      const boxX = 13;
+      const boxY = y + 2;
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(13, y + 2, 20, 20, 2, 2, "F");
-      doc.addImage(logo.data, logo.format, 14, y + 3, 18, 18);
-      textStartX = 37;
+      doc.roundedRect(boxX, boxY, p.boxW, 20, 2, 2, "F");
+      const imgX = boxX + (p.boxW - p.w) / 2;
+      const imgY = boxY + (20 - p.h) / 2;
+      doc.addImage(logo.data, logo.format, imgX, imgY, p.w, p.h);
+      textStartX = boxX + p.boxW + 4;
     } catch (err) {
       console.warn("Could not render logo in daily report PDF:", err);
     }
@@ -807,10 +839,15 @@ export async function downloadPrescriptionPDF(
   const logo = await loadImageForPdf(logoUrl);
   if (logo) {
     try {
+      const p = calcProportionalLogo(logo, 34, 20);
+      const boxX = 15;
+      const boxY = y + 2;
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(15, y + 2, 22, 22, 2, 2, "F");
-      doc.addImage(logo.data, logo.format, 16, y + 3, 20, 20);
-      textStartX = 41;
+      doc.roundedRect(boxX, boxY, p.boxW, 22, 2, 2, "F");
+      const imgX = boxX + (p.boxW - p.w) / 2;
+      const imgY = boxY + (22 - p.h) / 2;
+      doc.addImage(logo.data, logo.format, imgX, imgY, p.w, p.h);
+      textStartX = boxX + p.boxW + 4;
     } catch (err) {
       console.warn("Could not render logo in prescription PDF:", err);
     }
@@ -1150,10 +1187,15 @@ export async function downloadPrescriptionListPDF(
   const logo = await loadImageForPdf(logoUrl);
   if (logo) {
     try {
+      const p = calcProportionalLogo(logo, 28, 16);
+      const boxX = 12;
+      const boxY = y + 2;
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(12, y + 2, 18, 18, 1.5, 1.5, "F");
-      doc.addImage(logo.data, logo.format, 13, y + 3, 16, 16);
-      textStartX = 34;
+      doc.roundedRect(boxX, boxY, p.boxW, 18, 1.5, 1.5, "F");
+      const imgX = boxX + (p.boxW - p.w) / 2;
+      const imgY = boxY + (18 - p.h) / 2;
+      doc.addImage(logo.data, logo.format, imgX, imgY, p.w, p.h);
+      textStartX = boxX + p.boxW + 4;
     } catch (err) {
       console.warn("Could not render logo in prescription list PDF:", err);
     }
@@ -1268,10 +1310,15 @@ export async function downloadSalesHistoryListPDF(
   const logo = await loadImageForPdf(logoUrl);
   if (logo) {
     try {
+      const p = calcProportionalLogo(logo, 30, 18);
+      const boxX = 13;
+      const boxY = y + 2;
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(13, y + 2, 20, 20, 2, 2, "F");
-      doc.addImage(logo.data, logo.format, 14, y + 3, 18, 18);
-      textStartX = 37;
+      doc.roundedRect(boxX, boxY, p.boxW, 20, 2, 2, "F");
+      const imgX = boxX + (p.boxW - p.w) / 2;
+      const imgY = boxY + (20 - p.h) / 2;
+      doc.addImage(logo.data, logo.format, imgX, imgY, p.w, p.h);
+      textStartX = boxX + p.boxW + 4;
     } catch (err) {
       console.warn("Could not render logo in sales history PDF:", err);
     }
@@ -1601,10 +1648,15 @@ export async function downloadInvoicePDF(
   const logo = await loadImageForPdf(logoUrl);
   if (logo) {
     try {
+      const p = calcProportionalLogo(logo, 34, 20);
+      const boxX = 15;
+      const boxY = y + 2;
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(15, y + 2, 22, 22, 2, 2, "F");
-      doc.addImage(logo.data, logo.format, 16, y + 3, 20, 20);
-      textStartX = 41;
+      doc.roundedRect(boxX, boxY, p.boxW, 22, 2, 2, "F");
+      const imgX = boxX + (p.boxW - p.w) / 2;
+      const imgY = boxY + (22 - p.h) / 2;
+      doc.addImage(logo.data, logo.format, imgX, imgY, p.w, p.h);
+      textStartX = boxX + p.boxW + 4;
     } catch (err) {
       console.warn("Could not render logo in invoice PDF:", err);
     }
@@ -2777,10 +2829,15 @@ export async function downloadAdvanceReceiptPDF(
   const logo = await loadImageForPdf(logoUrl);
   if (logo) {
     try {
+      const p = calcProportionalLogo(logo, 34, 20);
+      const boxX = 15;
+      const boxY = 12;
       doc.setFillColor(255, 255, 255);
-      doc.roundedRect(15, 12, 22, 22, 2, 2, "F");
-      doc.addImage(logo.data, logo.format, 16, 13, 20, 20);
-      textStartX = 41;
+      doc.roundedRect(boxX, boxY, p.boxW, 22, 2, 2, "F");
+      const imgX = boxX + (p.boxW - p.w) / 2;
+      const imgY = boxY + (22 - p.h) / 2;
+      doc.addImage(logo.data, logo.format, imgX, imgY, p.w, p.h);
+      textStartX = boxX + p.boxW + 4;
     } catch (err) {
       console.warn("Could not render logo in advance receipt PDF:", err);
     }

@@ -134,7 +134,7 @@ export async function loginWithEmail(email: string, pass: string): Promise<{ suc
     if (code === "auth/user-not-found" || code === "auth/invalid-credential") {
       return {
         success: false,
-        message: `Invalid password or account not created yet for ${AUTHORIZED_OWNER_EMAIL}. You can also create your password or use Google Sign-In.`
+        message: `Invalid password or account not created yet for ${AUTHORIZED_OWNER_EMAIL}. Please verify your password or use 'Create / Set Password'.`
       };
     }
     return { success: false, message: formatFirebaseError(error) };

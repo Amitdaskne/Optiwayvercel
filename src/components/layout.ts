@@ -54,8 +54,8 @@ function buildBrandHeaderHtml(isMobile = false): string {
   if (logoUrl) {
     return `
       <div class="flex items-center gap-2.5 overflow-hidden min-w-0">
-        <div class="w-9 h-9 rounded-lg bg-white border border-slate-200 overflow-hidden flex items-center justify-center p-0.5 shadow-2xs shrink-0">
-          <img src="${logoUrl}" alt="${storeName}" class="w-full h-full object-contain" />
+        <div class="h-10 max-w-[80px] px-1.5 py-0.5 rounded-lg bg-white border border-slate-200 overflow-hidden flex items-center justify-center shadow-2xs shrink-0">
+          <img src="${logoUrl}" alt="${storeName}" class="max-h-full max-w-full w-auto h-auto object-contain" />
         </div>
         <div class="min-w-0 flex-1">
           <span class="text-sm font-bold tracking-tight text-[#1f6feb] block truncate leading-tight">${storeName}</span>
@@ -118,8 +118,8 @@ function refreshBrandElements() {
   if (headerBadge) {
     const { logoUrl, storeName } = getBrandInfo();
     headerBadge.innerHTML = `
-      ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="w-4 h-4 object-contain rounded-full" />` : `<span class="w-2 h-2 rounded-full bg-[#1f6feb] animate-pulse"></span>`}
-      <span class="truncate max-w-[170px]">${storeName || "Main Branch"}</span>
+      ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="h-4 max-w-[36px] w-auto object-contain shrink-0" />` : `<span class="w-2 h-2 rounded-full bg-[#1f6feb] animate-pulse"></span>`}
+      <span class="truncate max-w-[170px] font-medium">${storeName || "Main Branch"}</span>
     `;
   }
 }
@@ -160,16 +160,17 @@ function buildSidebarHtml(activeKey: string, user: UserProfile): string {
       </nav>
 
       <!-- User Info & Logout -->
-      <div class="p-4 border-t border-[#e5e7eb] bg-gray-50/60">
-        <div class="flex items-center justify-between">
+      <div class="p-3.5 border-t border-[#e5e7eb] bg-gray-50/70 space-y-2.5">
+        <div class="flex items-center justify-between min-w-0">
           <div class="min-w-0 pr-2">
             <p class="text-xs font-semibold text-[#111827] truncate">${user.displayName}</p>
             <p class="text-[11px] text-[#6b7280] truncate">${user.email || "store@optiway.com"}</p>
           </div>
-          <button id="btn-logout" title="Sign Out" class="p-1.5 text-[#6b7280] hover:text-red-600 hover:bg-gray-100 rounded-lg transition-colors">
-            ${getIconSvg("logOut", "w-4 h-4")}
-          </button>
         </div>
+        <button id="btn-logout" title="Sign Out" class="w-full py-2 px-3 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 hover:text-rose-800 border border-rose-200 rounded-lg transition-colors flex items-center justify-center gap-2 cursor-pointer shadow-2xs">
+          ${getIconSvg("logOut", "w-4 h-4 text-rose-600")}
+          <span>Logout</span>
+        </button>
       </div>
     </aside>
 
@@ -192,13 +193,14 @@ function buildSidebarHtml(activeKey: string, user: UserProfile): string {
           <div class="px-4 mt-5 mb-1.5 text-[11px] font-semibold text-[#6b7280] uppercase tracking-wider">Administration</div>
           ${renderNavGroup(adminItems)}
         </nav>
-        <div class="p-4 border-t border-[#e5e7eb] bg-gray-50 flex items-center justify-between safe-bottom">
+        <div class="p-4 border-t border-[#e5e7eb] bg-gray-50 space-y-2.5 safe-bottom">
           <div class="min-w-0">
             <p class="text-xs font-semibold text-[#111827] truncate">${user.displayName}</p>
             <p class="text-[11px] text-[#6b7280] truncate">${user.email || "store@optiway.com"}</p>
           </div>
-          <button id="btn-logout-mobile" title="Sign Out" class="p-2 text-[#6b7280] hover:text-red-600 hover:bg-red-50 rounded-lg cursor-pointer transition-colors" aria-label="Sign Out">
-            ${getIconSvg("logOut", "w-5 h-5")}
+          <button id="btn-logout-mobile" title="Sign Out" class="w-full py-2.5 px-3 text-xs font-semibold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg cursor-pointer transition-colors flex items-center justify-center gap-2 border border-rose-200 shadow-2xs" aria-label="Sign Out">
+            ${getIconSvg("logOut", "w-4 h-4 text-rose-600")}
+            <span>Logout</span>
           </button>
         </div>
       </div>
@@ -249,7 +251,7 @@ function buildHeaderHtml(pageTitle: string, user: UserProfile): string {
 
       <div class="flex items-center gap-3">
         <div id="header-store-badge" class="hidden sm:flex items-center gap-2 px-3 py-1 rounded-full bg-[#f0f7ff] border border-[#1f6feb]/20 text-[#1f6feb] text-xs font-medium">
-          ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="w-4 h-4 object-contain rounded-full" />` : `<span class="w-2 h-2 rounded-full bg-[#1f6feb] animate-pulse"></span>`}
+          ${logoUrl ? `<img src="${logoUrl}" alt="Logo" class="h-4 max-w-[36px] w-auto object-contain shrink-0" />` : `<span class="w-2 h-2 rounded-full bg-[#1f6feb] animate-pulse"></span>`}
           <span class="truncate max-w-[170px]">${storeName || "Main Branch"}</span>
         </div>
 
@@ -258,6 +260,10 @@ function buildHeaderHtml(pageTitle: string, user: UserProfile): string {
             ${(user.displayName || "O").slice(0, 2).toUpperCase()}
           </div>
           <span class="hidden sm:inline text-xs font-semibold text-[#111827]">${user.displayName}</span>
+          <button id="btn-logout-header" title="Logout / Sign Out" class="ml-1 sm:ml-2 px-2.5 py-1.5 text-xs font-semibold text-rose-700 hover:text-rose-800 bg-rose-50 hover:bg-rose-100 border border-rose-200 rounded-lg transition-colors flex items-center gap-1.5 cursor-pointer shadow-2xs">
+            ${getIconSvg("logOut", "w-3.5 h-3.5 text-rose-600")}
+            <span class="hidden xs:inline font-medium">Logout</span>
+          </button>
         </div>
       </div>
     </header>
@@ -281,6 +287,7 @@ function setupMobileDrawerEvents() {
 
   document.getElementById("btn-logout")?.addEventListener("click", () => logoutUser());
   document.getElementById("btn-logout-mobile")?.addEventListener("click", () => logoutUser());
+  document.getElementById("btn-logout-header")?.addEventListener("click", () => logoutUser());
 }
 
 // Global Toast System without emojis
