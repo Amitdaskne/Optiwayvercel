@@ -1,5 +1,5 @@
 import { GoogleGenAI } from "@google/genai";
-import { getGeminiApiKey } from "./_apiKey";
+import { getGeminiApiKey, validateGeminiApiKey } from "./_apiKey";
 
 export const config = {
   api: {
@@ -39,21 +39,15 @@ export default async function handler(req: any, res: any) {
     }
 
     const apiKey = getGeminiApiKey();
-    if (!apiKey) {
-      return res.status(500).json({
+    const validation = validateGeminiApiKey(apiKey);
+    if (!validation.valid) {
+      return res.status(400).json({
         success: false,
-        error: "GEMINI_API_KEY missing! Please paste your key into 'api/_apiKey.ts' (export const GEMINI_API_KEY = '...') or set it in Vercel Environment Variables."
+        error: validation.error
       });
     }
 
-    const ai = new GoogleGenAI({
-      apiKey,
-      httpOptions: {
-        headers: {
-          "User-Agent": "aistudio-build"
-        }
-      }
-    });
+    const ai = new GoogleGenAI({ apiKey });
 
     const promptInstructions = `You are an expert optical retail procurement & billing auditor.
 Analyze this optical invoice/purchase bill (covers optical frames, ophthalmic prescription lenses, contact lenses, sunglasses, accessories, lab charges).
@@ -281,9 +275,17 @@ Important rules:
     });
   } catch (err: any) {
     console.error("Purchase bill scanning failed:", err);
+    let errMsg = err?.message || String(err) || "Failed to process and extract purchase bill data with AI.";
+
+    if (errMsg.includes("ACCESS_TOKEN_TYPE_UNSUPPORTED") || errMsg.includes("invalid authentication credentials") || errMsg.includes("UNAUTHENTICATED")) {
+      errMsg = "Authentication Error: Google ne request reject kar di kyunki credential invalid hai. Agar aapne Google Cloud se OAuth Client ID ya Client Secret copy kiya hai toh use hatayein. Gemini AI ke liye seedhe https://aistudio.google.com/app/apikey par jakar 'Create API Key' karein (yeh 'AIzaSy...' se shuru hoti hai) aur 'api/_apiKey.ts' me paste karein.";
+    } else if (errMsg.includes("API_KEY_INVALID") || errMsg.includes("API key not valid")) {
+      errMsg = "API Key Invalid hai! Kripya https://aistudio.google.com/app/apikey se nayi valid Gemini API Key banayein aur 'api/_apiKey.ts' file me daalein.";
+    }
+
     return res.status(500).json({
       success: false,
-      error: err.message || "Failed to process and extract purchase bill data with AI."
+      error: errMsg
     });
   }
 }
